@@ -44,6 +44,7 @@ npx --yes pnpm@9 install --lockfile-only  # stack: node
 | `status` | `concept`, `wip`, `active` or `inactive` |
 | `has_release` | Adds the release-please job and the release badge |
 | `year` | Copyright year, defaults to the current year |
+| `skeleton` | `true` by default. Set `false` to skip the project skeleton below when adopting an existing repo |
 
 ## What you get
 

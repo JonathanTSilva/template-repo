@@ -555,6 +555,34 @@ def test_skeleton_skip_if_exists(tmp_path, stack, files):
         assert (tmp_path / name).read_text() == "custom content\n", name
 
 
+@pytest.mark.parametrize("stack", ("python", "node", "shell", "none"))
+def test_skeleton_false_renders_no_skeleton(tmp_path, stack):
+    render(tmp_path, stack=stack, skeleton=False)
+    for name in (
+        "pyproject.toml",
+        ".python-version",
+        "package.json",
+        "eslint.config.js",
+        "tsconfig.json",
+        "src",
+        "tests",
+        "bin",
+        "test",
+    ):
+        assert not (tmp_path / name).exists(), name
+    # Everything that is not skeleton is still rendered, including the stack's CI.
+    for name in (".github/workflows/ci.yml", "AGENTS.md", "README.md", "LICENSE", ".gitignore"):
+        assert (tmp_path / name).is_file(), name
+    if stack != "none":
+        assert stack in (tmp_path / ".github/workflows/ci.yml").read_text()
+
+
+def test_skeleton_defaults_to_true(tmp_path):
+    render(tmp_path, stack="python")
+    assert (tmp_path / "pyproject.toml").is_file()
+    assert yaml.safe_load((tmp_path / ".copier-answers.yml").read_text())["skeleton"] is True
+
+
 def test_settings_deny_git_output_and_ext_diff(tmp_path):
     render(tmp_path, stack="python")
     settings = json.loads((tmp_path / ".claude/settings.json").read_text())
