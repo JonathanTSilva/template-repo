@@ -289,8 +289,22 @@ def test_structured_files_parse(tmp_path, stack):
     for rule in ("Read(./.env*)", "Bash(git push --force*)", "Bash(git push -f*)"):
         assert rule in deny
     allow = settings["permissions"]["allow"]
-    for rule in ("Bash(git status*)", "Bash(git diff*)", "Bash(git log*)"):
+    for rule in (
+        "Bash(git status)",
+        "Bash(git diff)",
+        "Bash(git diff --stat)",
+        "Bash(git diff --staged)",
+        "Bash(git log --oneline -20)",
+    ):
         assert rule in allow
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_settings_allow_no_wildcard_git(tmp_path, stack):
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    for entry in settings["permissions"]["allow"]:
+        assert not (entry.startswith("Bash(git") and entry.endswith("*)")), entry
 
 
 def test_agents_md_sections(tmp_path):
@@ -551,5 +565,8 @@ def test_settings_deny_git_output_and_ext_diff(tmp_path):
         "Bash(git show*--output*)",
         "Bash(git*--ext-diff*)",
         "Bash(git -c*)",
+        "Bash(git*--o*)",
+        "Bash(git*--ext*)",
+        "Bash(git*--no-index*)",
     ):
         assert entry in deny, entry
