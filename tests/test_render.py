@@ -539,3 +539,17 @@ def test_skeleton_skip_if_exists(tmp_path, stack, files):
     render(tmp_path, stack=stack)
     for name in files:
         assert (tmp_path / name).read_text() == "custom content\n", name
+
+
+def test_settings_deny_git_output_and_ext_diff(tmp_path):
+    render(tmp_path, stack="python")
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    deny = settings["permissions"]["deny"]
+    for entry in (
+        "Bash(git diff*--output*)",
+        "Bash(git log*--output*)",
+        "Bash(git show*--output*)",
+        "Bash(git*--ext-diff*)",
+        "Bash(git -c*)",
+    ):
+        assert entry in deny, entry
