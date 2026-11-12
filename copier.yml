@@ -1,0 +1,115 @@
+_subdirectory: template
+_min_copier_version: "9.4.0"
+_envops:
+  keep_trailing_newline: true
+  trim_blocks: true
+  lstrip_blocks: true
+_exclude:
+  - copier.yml
+  - copier.yaml
+  - "~*"
+  - "*.py[co]"
+  - __pycache__
+  - .git
+  - .DS_Store
+
+repo_name:
+  type: str
+  help: Repository name (lowercase kebab-case)
+  validator: >-
+    {% if not (repo_name | regex_search('^[a-z0-9]+(-[a-z0-9]+)*$')) %}
+    Use lowercase kebab-case, for example my-repo.
+    {% endif %}
+
+description:
+  type: str
+  help: One-line description (also the GitHub description)
+  validator: >-
+    {% if not description | trim %}
+    A description is required.
+    {% endif %}
+
+kind:
+  type: str
+  help: Kind of repository (see the naming page of the handbook)
+  default: product
+  choices:
+    - product
+    - jts
+    - ai
+    - research
+    - course
+    - learn
+    - template
+    - challenge
+    - poc
+    - infra
+    - action
+    - obsidian-plugin
+    - homebrew-tap
+    - awesome
+    - special
+
+stack:
+  type: str
+  help: Main stack, picks the CI workflow, hooks and commands
+  default: none
+  choices:
+    - python
+    - node
+    - shell
+    - none
+
+visibility:
+  type: str
+  help: Repository visibility
+  default: public
+  choices:
+    - public
+    - private
+
+license:
+  type: str
+  help: License (company-owned repos keep the company license and are not rendered from this template)
+  default: mit
+  choices:
+    - mit
+    - cc-by-4.0
+    - mit+cc-by-4.0
+    - proprietary
+    - agpl-3.0
+
+status:
+  type: str
+  help: Repo status (repostatus.org)
+  default: wip
+  choices:
+    - concept
+    - wip
+    - active
+    - inactive
+
+has_release:
+  type: bool
+  help: Cut releases with release-please?
+  default: false
+
+year:
+  type: int
+  help: Copyright year
+  default: "{{ '%Y' | strftime }}"
+
+# Skeleton files are a starting point only. Rendering onto an existing repo
+# (a migration, or `copier update`) must never overwrite real code.
+_skip_if_exists:
+  - pyproject.toml
+  - .python-version
+  - "src/{{ repo_name | replace('-', '_') }}/__init__.py"
+  - tests/test_smoke.py
+  - package.json
+  - eslint.config.js
+  - tsconfig.json
+  - src/index.ts
+  - tests/index.test.ts
+  - "bin/{{ repo_name }}.sh"
+  - "test/{{ repo_name }}.bats"

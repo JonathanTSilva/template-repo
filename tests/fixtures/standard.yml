@@ -1,0 +1,59 @@
+# The GitHub standard as data. Read by jts-ops; validated by schemas/standard.schema.json.
+version: 1
+owner: JonathanTSilva
+author: Jonathan Tobias
+contact_email: jonathantosilva@hotmail.com
+plan: free
+
+# Repo names are lowercase kebab-case; the special names are fixed by GitHub.
+name_pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+special_names:
+  - JonathanTSilva
+  - jonathantsilva.github.io
+  - .github
+
+# Every repo carries the topic kind-<id> (or `topic` below) for its kind.
+kinds:
+  - { id: product, prefix: null, suffix: null, emoji: "➕", topic: kind-product }
+  - { id: jts, prefix: "jts-", suffix: null, emoji: "🧠", topic: kind-jts }
+  - { id: ai, prefix: "ai-", suffix: null, emoji: "🤖", topic: kind-ai }
+  - { id: research, prefix: "research-", suffix: null, emoji: "🔬", topic: kind-research }
+  - { id: course, prefix: "course-", suffix: null, emoji: "📖", topic: kind-course }
+  - { id: learn, prefix: "learn-", suffix: null, emoji: "🛠", topic: kind-learn }
+  - { id: template, prefix: "template-", suffix: null, emoji: "📚", topic: kind-template }
+  - { id: challenge, prefix: "challenge-", suffix: null, emoji: "🏁", topic: kind-challenge }
+  - { id: poc, prefix: "poc-", suffix: null, emoji: "🧪", topic: kind-poc }
+  - { id: infra, prefix: "infra-", suffix: null, emoji: "🏗", topic: kind-infra }
+  - { id: action, prefix: null, suffix: "-action", emoji: "⚙️", topic: kind-action }
+  - { id: obsidian-plugin, prefix: "obsidian-", suffix: null, emoji: "🔌", topic: kind-obsidian-plugin }
+  - { id: homebrew-tap, prefix: "homebrew-", suffix: null, emoji: "🍺", topic: kind-homebrew-tap }
+  - { id: awesome, prefix: "awesome-", suffix: null, emoji: "🕶", topic: kind-awesome }
+  - { id: special, prefix: null, suffix: null, emoji: "⭐", topic: kind-special }
+
+statuses: [concept, wip, active, inactive, unsupported, archived]
+
+# Files an audit expects, per profile. Directories end with a slash.
+profiles:
+  active:
+    required_files:
+      - README.md
+      - LICENSE
+      - AGENTS.md
+      - CLAUDE.md
+      - .editorconfig
+      - .gitignore
+      - .pre-commit-config.yaml
+      - .github/workflows/ci.yml
+      - .github/dependabot.yml
+      - .github/CODEOWNERS
+      - .claude/settings.json
+      - .devcontainer/devcontainer.json
+      - .copier-answers.yml
+  archived:
+    required_files: [README.md]
+  exempt:
+    required_files: []
+  special:
+    required_files: []
+
+licenses: [mit, cc-by-4.0, mit+cc-by-4.0, proprietary, agpl-3.0, company]

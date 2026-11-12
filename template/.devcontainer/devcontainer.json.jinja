@@ -1,0 +1,36 @@
+{% if stack == 'python' %}
+{% set post_create = 'pipx install uv && pipx install pre-commit && uv sync && pre-commit install --install-hooks' %}
+{% elif stack == 'node' %}
+{% set post_create = 'corepack enable && pipx install pre-commit && pnpm install && pre-commit install --install-hooks' %}
+{% elif stack == 'shell' %}
+{% set post_create = 'sudo apt-get update && sudo apt-get install -y shellcheck shfmt bats && pipx install pre-commit && pre-commit install --install-hooks' %}
+{% else %}
+{% set post_create = 'pipx install pre-commit && pre-commit install --install-hooks' %}
+{% endif %}
+{
+  "name": "{{ repo_name }}",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13"
+    }{% if stack == 'node' %},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    }{% endif %}
+
+  },
+  "postCreateCommand": "{{ post_create }}",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "editorconfig.editorconfig"{% if stack == 'python' %},
+        "charliermarsh.ruff"{% elif stack == 'node' %},
+        "dbaeumer.vscode-eslint"{% elif stack == 'shell' %},
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format"{% endif %}
+
+      ]
+    }
+  }
+}

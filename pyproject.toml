@@ -1,0 +1,24 @@
+[project]
+name = "template-repo"
+version = "0.0.0"
+description = "Copier template for the repositories of JonathanTSilva (tests only, not a package)."
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = ["copier", "pyright", "pytest", "pytest-cov", "pyyaml", "ruff", "types-pyyaml"]
+
+[tool.ruff]
+line-length = 100
+src = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyright]
+include = ["tests"]
+typeCheckingMode = "basic"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["skeleton: renders a project skeleton and runs its real CI commands (slow, needs network)"]

@@ -1,0 +1,49 @@
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code local state
+.claude/settings.local.json
+CLAUDE.local.md
+{% if stack == 'python' %}
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+{% elif stack == 'node' %}
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+.eslintcache
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+{% elif stack == 'shell' %}
+
+# Shell
+*.log
+*.tmp
+{% endif %}

@@ -1,0 +1,26 @@
+{% set pkg = repo_name | replace('-', '_') %}
+[project]
+name = "{{ repo_name }}"
+version = "0.1.0"
+description = "{{ description | replace('\\', '\\\\') | replace('"', '\\"') }}"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["ruff", "pyright", "pytest", "pytest-cov"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov={{ pkg }}"
+
+[tool.coverage.run]
+source = ["{{ pkg }}"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"

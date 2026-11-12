@@ -1,0 +1,17 @@
+#!/usr/bin/env bats
+
+setup() {
+  SCRIPT="${BATS_TEST_DIRNAME}/../bin/{{ repo_name }}.sh"
+}
+
+@test "--help prints usage" {
+  run "$SCRIPT" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Usage:"* ]]
+}
+
+@test "greets the world by default" {
+  run "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$output" = "Hello, world!" ]
+}

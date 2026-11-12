@@ -1,0 +1,92 @@
+{% set status_colors = {'concept': 'lightgrey', 'wip': 'yellow', 'active': 'brightgreen', 'inactive': 'silver'} %}
+{% set license_labels = {'mit': 'MIT', 'cc-by-4.0': 'CC_BY_4.0', 'mit+cc-by-4.0': 'MIT_and_CC_BY_4.0', 'proprietary': 'proprietary', 'agpl-3.0': 'AGPL--3.0'} %}
+{% set license_names = {'mit': 'MIT', 'cc-by-4.0': 'CC BY 4.0', 'mit+cc-by-4.0': 'MIT (code) and CC BY 4.0 (content)', 'proprietary': 'proprietary, all rights reserved', 'agpl-3.0': 'AGPL-3.0'} %}
+{% set repo = 'JonathanTSilva/' ~ repo_name %}
+# {{ repo_name }}
+
+{{ description }}
+
+<!-- badges:start -->
+[![Status](https://img.shields.io/badge/status-{{ status }}-{{ status_colors[status] }}?style=flat-square)](https://www.repostatus.org/#{{ status }})
+{% if visibility == 'public' %}
+[![CI](https://img.shields.io/github/actions/workflow/status/{{ repo }}/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/{{ repo }}/actions/workflows/ci.yml)
+{% if has_release %}
+[![Release](https://img.shields.io/github/v/release/{{ repo }}?style=flat-square)](https://github.com/{{ repo }}/releases)
+{% endif %}
+[![Scorecard](https://img.shields.io/ossf-scorecard/github.com/{{ repo }}?style=flat-square&label=scorecard)](https://scorecard.dev/viewer/?uri=github.com/{{ repo }})
+{% endif %}
+[![License](https://img.shields.io/badge/license-{{ license_labels[license] }}-blue?style=flat-square)](LICENSE)
+{% if visibility == 'public' %}
+[![Codespaces](https://img.shields.io/badge/codespaces-open-181717?style=flat-square&logo=github)](https://codespaces.new/{{ repo }})
+{% endif %}
+<!-- badges:end -->
+
+## What it is
+
+{{ repo_name }} is set up from the shared standard in [`.github`](https://github.com/JonathanTSilva/.github), so CI, hooks, dependency updates and agent instructions work like in the other repositories of JonathanTSilva.
+
+## Quick start
+
+{% if stack == 'python' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+uv sync
+uv run pytest
+```
+{% elif stack == 'node' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+pnpm install
+pnpm run test
+```
+{% elif stack == 'shell' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+```
+
+Needs `shellcheck`, `shfmt` and `bats` for the checks.
+{% else %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+```
+{% endif %}
+
+Or open it in a dev container or GitHub Codespaces.
+
+{% if stack == 'python' %}
+## Usage
+
+```sh
+uv run python -c "import {{ repo_name | replace('-', '_') }}"
+```
+
+{% elif stack == 'node' %}
+## Usage
+
+```sh
+pnpm test
+```
+
+{% elif stack == 'shell' %}
+## Usage
+
+```sh
+bin/{{ repo_name }}.sh --help
+```
+
+{% endif %}
+## Docs
+
+The conventions this repository follows are in the [handbook](https://github.com/JonathanTSilva/.github/blob/main/handbook/README.md), including [repo anatomy](https://github.com/JonathanTSilva/.github/blob/main/handbook/repo-anatomy.md) and [branches and commits](https://github.com/JonathanTSilva/.github/blob/main/handbook/branches-and-commits.md).
+
+## Contributing
+
+See the [contributing guide](https://github.com/JonathanTSilva/.github/blob/main/CONTRIBUTING.md). Branches are named `<type>/<issue>-<slug>`, commits and PR titles follow Conventional Commits, and PRs are squash-merged.
+
+## License
+
+{{ license_names[license] }}. See [LICENSE](LICENSE).

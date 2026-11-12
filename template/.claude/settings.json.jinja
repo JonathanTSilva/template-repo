@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+{% if stack == 'python' %}
+      "Bash(uv sync*)",
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run pyright*)",
+{% elif stack == 'node' %}
+      "Bash(pnpm install*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm run test*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm run lint*)",
+      "Bash(pnpm typecheck*)",
+      "Bash(pnpm run typecheck*)",
+{% elif stack == 'shell' %}
+      "Bash(shellcheck*)",
+      "Bash(shfmt*)",
+      "Bash(bats*)",
+{% endif %}
+      "Bash(pre-commit run*)"
+    ],
+    "deny": [
+      "Read(./.env*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ]
+  }
+}

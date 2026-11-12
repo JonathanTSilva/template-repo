@@ -1,0 +1,40 @@
+{% if license == 'mit' %}
+{% include 'licenses/mit.txt' %}
+{% elif license == 'proprietary' %}
+Copyright (c) {{ year }} Jonathan Tobias. All rights reserved.
+
+This software and its source code are proprietary and confidential. No part of
+them may be used, copied, modified, merged, published, distributed,
+sublicensed or sold without the prior written permission of the copyright
+holder.
+{% elif license == 'cc-by-4.0' %}
+Copyright (c) {{ year }} Jonathan Tobias
+
+This work is licensed under the Creative Commons Attribution 4.0 International
+License. To view a copy of this license, visit
+https://creativecommons.org/licenses/by/4.0/
+
+{% include 'licenses/cc-by-4.0.txt' %}
+{% elif license == 'mit+cc-by-4.0' %}
+This repository has two licenses.
+
+- Code is licensed under the MIT License (first section).
+- Written content, such as prose, documentation and images, is licensed under
+  the Creative Commons Attribution 4.0 International License (second section).
+
+----------------------------------------------------------------------------
+Code: MIT License
+----------------------------------------------------------------------------
+
+{% include 'licenses/mit.txt' %}
+
+----------------------------------------------------------------------------
+Content: Creative Commons Attribution 4.0 International
+----------------------------------------------------------------------------
+
+Copyright (c) {{ year }} Jonathan Tobias
+
+{% include 'licenses/cc-by-4.0.txt' %}
+{% elif license == 'agpl-3.0' %}
+{% include 'licenses/agpl-3.0.txt' %}
+{% endif %}

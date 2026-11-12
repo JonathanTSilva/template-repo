@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# {{ description }}
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: {{ repo_name }}.sh [--help] [NAME]
+
+Print a greeting for NAME (default: world).
+USAGE
+}
+
+main() {
+  case "${1:-}" in
+  -h | --help)
+    usage
+    ;;
+  *)
+    echo "Hello, ${1:-world}!"
+    ;;
+  esac
+}
+
+main "$@"
