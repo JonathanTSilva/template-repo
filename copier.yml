@@ -99,6 +99,11 @@ year:
   help: Copyright year
   default: "{{ '%Y' | strftime }}"
 
+skeleton:
+  type: bool
+  help: Render the stack skeleton (manifest, source and test stubs)? Turn off when adopting an existing repo.
+  default: true
+
 # Skeleton files are a starting point only. Rendering onto an existing repo
 # (a migration, or `copier update`) must never overwrite real code.
 _skip_if_exists:
