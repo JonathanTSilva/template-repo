@@ -24,7 +24,7 @@
       "Bash(shfmt*)",
       "Bash(bats*)",
 {% endif %}
-      "Bash(pre-commit run*)"
+      "Bash(pre-commit run --all-files)"
     ],
     "deny": [
       "Read(./.env*)",
@@ -37,7 +37,9 @@
       "Bash(git -c*)",
       "Bash(git*--o*)",
       "Bash(git*--ext*)",
-      "Bash(git*--no-index*)"
+      "Bash(git*--no-index*)",
+      "Bash(pre-commit*--config*)",
+      "Bash(pre-commit*-c *)"
     ]
   }
 }

@@ -307,6 +307,15 @@ def test_settings_allow_no_wildcard_git(tmp_path, stack):
         assert not (entry.startswith("Bash(git") and entry.endswith("*)")), entry
 
 
+@pytest.mark.parametrize("stack", STACKS)
+def test_settings_allow_no_wildcard_pre_commit(tmp_path, stack):
+    # A wildcard lets agents pass --config / -c and run arbitrary hooks.
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    for entry in settings["permissions"]["allow"]:
+        assert not (entry.startswith("Bash(pre-commit") and entry.endswith("*)")), entry
+
+
 def test_agents_md_sections(tmp_path):
     render(tmp_path)
     text = (tmp_path / "AGENTS.md").read_text()
