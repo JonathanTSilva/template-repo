@@ -23,6 +23,20 @@
       "Bash(shellcheck*)",
       "Bash(shfmt*)",
       "Bash(bats*)",
+{% elif stack == 'go' %}
+      "Bash(go test*)",
+      "Bash(go vet*)",
+      "Bash(gofmt*)",
+{% elif stack == 'rust' %}
+      "Bash(cargo test*)",
+      "Bash(cargo clippy*)",
+      "Bash(cargo fmt*)",
+{% elif stack == 'c-cpp' %}
+      "Bash(cmake -S . -B build*)",
+      "Bash(cmake --build build*)",
+      "Bash(ctest --test-dir build*)",
+{% elif stack == 'latex' %}
+      "Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex)",
 {% endif %}
       "Bash(pre-commit run --all-files)"
     ],

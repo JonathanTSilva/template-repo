@@ -7,7 +7,7 @@ Instructions for AI coding agents working in this repository. This file is the s
 {{ repo_name }}: {{ description }}
 
 - Kind: `{{ kind }}`
-- Stack: {{ {'python': 'Python (uv, ruff, pyright, pytest)', 'node': 'Node.js (pnpm, eslint, vitest)', 'shell': 'Shell (shellcheck, shfmt, bats)', 'none': 'no language stack'}[stack] }}
+- Stack: {{ {'python': 'Python (uv, ruff, pyright, pytest)', 'node': 'Node.js (pnpm, eslint, vitest)', 'shell': 'Shell (shellcheck, shfmt, bats)', 'go': 'Go (gofmt, go vet, go test)', 'rust': 'Rust (rustfmt, clippy, cargo test)', 'c-cpp': 'C and C++ (CMake, ctest, clang-tidy, cppcheck)', 'latex': 'LaTeX (latexmk)', 'none': 'no language stack'}[stack] }}
 - Visibility: {{ visibility }}
 - Status: {{ status }}
 - License: {{ license }}
@@ -30,6 +30,29 @@ pre-commit install --install-hooks
 ```
 
 Install `shellcheck`, `shfmt` and `bats` with your package manager.
+{% elif stack == 'go' %}
+```sh
+go mod download
+pre-commit install --install-hooks
+```
+{% elif stack == 'rust' %}
+```sh
+cargo fetch --locked
+pre-commit install --install-hooks
+```
+{% elif stack == 'c-cpp' %}
+```sh
+cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+pre-commit install --install-hooks
+```
+
+Install `cmake`, `clang-tidy` and `cppcheck` with your package manager.
+{% elif stack == 'latex' %}
+```sh
+pre-commit install --install-hooks
+```
+
+Install `latexmk` and a TeX Live distribution with your package manager.
 {% else %}
 ```sh
 pre-commit install --install-hooks
@@ -57,6 +80,28 @@ Or open the repository in a dev container or GitHub Codespaces, which runs the s
 | Test | `bats test` |
 | Lint | `shellcheck <script>` |
 | Format | `shfmt -w <script>` |
+{% elif stack == 'go' %}
+| Task | Command |
+|---|---|
+| Test | `go test -race ./...` |
+| Lint | `go vet ./...` |
+| Format | `gofmt -w .` |
+{% elif stack == 'rust' %}
+| Task | Command |
+|---|---|
+| Test | `cargo test` |
+| Lint | `cargo clippy --all-targets -- -D warnings` |
+| Format | `cargo fmt --all` |
+{% elif stack == 'c-cpp' %}
+| Task | Command |
+|---|---|
+| Build | `cmake -S . -B build && cmake --build build` |
+| Test | `ctest --test-dir build --output-on-failure` |
+| Lint | `clang-tidy -p build <file>` and `cppcheck --project=build/compile_commands.json` |
+{% elif stack == 'latex' %}
+| Task | Command |
+|---|---|
+| Build | `latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex` |
 {% else %}
 | Task | Command |
 |---|---|

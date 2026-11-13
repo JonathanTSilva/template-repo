@@ -2,6 +2,7 @@
 {% set license_labels = {'mit': 'MIT', 'cc-by-4.0': 'CC_BY_4.0', 'mit+cc-by-4.0': 'MIT_and_CC_BY_4.0', 'proprietary': 'proprietary', 'agpl-3.0': 'AGPL--3.0'} %}
 {% set license_names = {'mit': 'MIT', 'cc-by-4.0': 'CC BY 4.0', 'mit+cc-by-4.0': 'MIT (code) and CC BY 4.0 (content)', 'proprietary': 'proprietary, all rights reserved', 'agpl-3.0': 'AGPL-3.0'} %}
 {% set repo = 'JonathanTSilva/' ~ repo_name %}
+{% set has_coverage = stack in ['python', 'go'] %}
 # {{ repo_name }}
 
 {{ description }}
@@ -12,6 +13,12 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/{{ repo }}/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/{{ repo }}/actions/workflows/ci.yml)
 {% if has_release %}
 [![Release](https://img.shields.io/github/v/release/{{ repo }}?style=flat-square)](https://github.com/{{ repo }}/releases)
+{% endif %}
+{% if has_coverage %}
+[![Coverage](https://codecov.io/gh/{{ repo }}/graph/badge.svg)](https://codecov.io/gh/{{ repo }})
+{% endif %}
+{% if sonar %}
+[![Quality](https://sonarcloud.io/api/project_badges/measure?project=JonathanTSilva_{{ repo_name }}&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JonathanTSilva_{{ repo_name }})
 {% endif %}
 [![Scorecard](https://img.shields.io/ossf-scorecard/github.com/{{ repo }}?style=flat-square&label=scorecard)](https://scorecard.dev/viewer/?uri=github.com/{{ repo }})
 {% endif %}
@@ -48,6 +55,36 @@ cd {{ repo_name }}
 ```
 
 Needs `shellcheck`, `shfmt` and `bats` for the checks.
+{% elif stack == 'go' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+go test ./...
+```
+{% elif stack == 'rust' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+cargo test
+```
+{% elif stack == 'c-cpp' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Needs `cmake` and a C++ compiler.
+{% elif stack == 'latex' %}
+```sh
+git clone https://github.com/{{ repo }}.git
+cd {{ repo_name }}
+latexmk -pdf -outdir=build main.tex
+```
+
+Needs `latexmk` and a TeX Live distribution.
 {% else %}
 ```sh
 git clone https://github.com/{{ repo }}.git
@@ -77,6 +114,32 @@ pnpm test
 ```sh
 bin/{{ repo_name }}.sh --help
 ```
+
+{% elif stack == 'go' %}
+## Usage
+
+```sh
+go test ./...
+```
+
+{% elif stack == 'rust' %}
+## Usage
+
+```sh
+cargo test
+```
+
+{% elif stack == 'c-cpp' %}
+## Usage
+
+```sh
+ctest --test-dir build --output-on-failure
+```
+
+{% elif stack == 'latex' %}
+## Usage
+
+The PDF is written to `build/main.pdf`.
 
 {% endif %}
 ## Docs

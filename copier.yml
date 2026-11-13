@@ -58,6 +58,10 @@ stack:
     - python
     - node
     - shell
+    - go
+    - rust
+    - c-cpp
+    - latex
     - none
 
 visibility:
@@ -104,6 +108,38 @@ skeleton:
   help: Render the stack skeleton (manifest, source and test stubs)? Turn off when adopting an existing repo.
   default: true
 
+# Opt-in CI suites. They only add jobs to ci.yml (and a badge), never files,
+# so the defaults are safe for `copier update` on existing repos.
+e2e:
+  type: bool
+  help: Run Playwright end-to-end tests (needs a pnpm project with @playwright/test)?
+  default: false
+
+lighthouse:
+  type: bool
+  help: Run Lighthouse CI against the built site?
+  default: false
+
+load:
+  type: bool
+  help: Run a k6 load test against a server started from a command?
+  default: false
+
+bench:
+  type: bool
+  help: Track benchmarks and alert on regressions (history on gh-pages)?
+  default: false
+
+reports:
+  type: bool
+  help: Publish an Allure report to GitHub Pages under /reports/?
+  default: false
+
+sonar:
+  type: bool
+  help: Is the repo analysed by SonarQube Cloud (Automatic Analysis)? Adds the quality-gate badge on public repos, no CI job.
+  default: false
+
 # Skeleton files are a starting point only. Rendering onto an existing repo
 # (a migration, or `copier update`) must never overwrite real code.
 _skip_if_exists:
@@ -118,3 +154,14 @@ _skip_if_exists:
   - tests/index.test.ts
   - "bin/{{ repo_name }}.sh"
   - "test/{{ repo_name }}.bats"
+  - go.mod
+  - sum.go
+  - sum_test.go
+  - Cargo.toml
+  - Cargo.lock
+  - src/lib.rs
+  - CMakeLists.txt
+  - src/sum.hpp
+  - src/sum.cpp
+  - tests/sum_test.cpp
+  - main.tex

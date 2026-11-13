@@ -46,4 +46,29 @@ pnpm-debug.log*
 # Shell
 *.log
 *.tmp
+{% elif stack == 'go' %}
+
+# Go
+bin/
+coverage.out
+*.test
+{% elif stack == 'rust' %}
+
+# Rust
+target/
+{% elif stack == 'c-cpp' %}
+
+# C and C++
+build/
+{% elif stack == 'latex' %}
+
+# LaTeX
+build/
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
 {% endif %}

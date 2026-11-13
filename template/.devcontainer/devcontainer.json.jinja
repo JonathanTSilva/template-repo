@@ -4,6 +4,14 @@
 {% set post_create = 'corepack enable && pipx install pre-commit && pnpm install && pre-commit install --install-hooks' %}
 {% elif stack == 'shell' %}
 {% set post_create = 'sudo apt-get update && sudo apt-get install -y shellcheck shfmt bats && pipx install pre-commit && pre-commit install --install-hooks' %}
+{% elif stack == 'go' %}
+{% set post_create = 'pipx install pre-commit && go mod download && pre-commit install --install-hooks' %}
+{% elif stack == 'rust' %}
+{% set post_create = 'pipx install pre-commit && pre-commit install --install-hooks' %}
+{% elif stack == 'c-cpp' %}
+{% set post_create = 'sudo apt-get update && sudo apt-get install -y cmake clang-tidy cppcheck jq && pipx install pre-commit && pre-commit install --install-hooks' %}
+{% elif stack == 'latex' %}
+{% set post_create = 'sudo apt-get update && sudo apt-get install -y latexmk texlive-latex-base texlive-latex-recommended texlive-fonts-recommended && pipx install pre-commit && pre-commit install --install-hooks' %}
 {% else %}
 {% set post_create = 'pipx install pre-commit && pre-commit install --install-hooks' %}
 {% endif %}
@@ -17,7 +25,9 @@
     }{% if stack == 'node' %},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
-    }{% endif %}
+    }{% endif %}{% if stack == 'go' %},
+    "ghcr.io/devcontainers/features/go:1": {}{% elif stack == 'rust' %},
+    "ghcr.io/devcontainers/features/rust:1": {}{% endif %}
 
   },
   "postCreateCommand": "{{ post_create }}",
@@ -28,7 +38,12 @@
         "charliermarsh.ruff"{% elif stack == 'node' %},
         "dbaeumer.vscode-eslint"{% elif stack == 'shell' %},
         "timonwong.shellcheck",
-        "foxundermoon.shell-format"{% endif %}
+        "foxundermoon.shell-format"{% elif stack == 'go' %},
+        "golang.go"{% elif stack == 'rust' %},
+        "rust-lang.rust-analyzer"{% elif stack == 'c-cpp' %},
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"{% elif stack == 'latex' %},
+        "james-yu.latex-workshop"{% endif %}
 
       ]
     }

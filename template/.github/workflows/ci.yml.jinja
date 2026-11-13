@@ -1,3 +1,4 @@
+{% set suite_flags = {'e2e': e2e, 'lighthouse': lighthouse, 'load': load, 'bench': bench, 'reports': reports} %}
 name: ci
 
 on:
@@ -41,6 +42,90 @@ jobs:
       contents: read
     uses: JonathanTSilva/.github/.github/workflows/{{ stack }}.yml@v1
 {% endif %}
+{% if visibility == 'public' and stack in ['python', 'go'] %}
+
+  # Codecov through OIDC, public repos only. Never fails CI.
+  coverage:
+    needs: {{ stack }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: JonathanTSilva/.github/.github/workflows/coverage.yml@v1
+    with:
+      artifact: {{ 'go-coverage' if stack == 'go' else 'coverage' }}
+      flags: {{ stack }}
+{% endif %}
+{% if e2e %}
+
+  # Playwright. Needs a pnpm project with @playwright/test.
+  e2e:
+    permissions:
+      contents: read
+    uses: JonathanTSilva/.github/.github/workflows/e2e.yml@v1
+{% endif %}
+{% if lighthouse %}
+
+  # Lighthouse CI. Adjust the build command and the directory of the built site.
+  lighthouse:
+    permissions:
+      contents: read
+    uses: JonathanTSilva/.github/.github/workflows/lighthouse.yml@v1
+    with:
+      build-command: pnpm run build
+      static-dist-dir: dist
+{% endif %}
+{% if load %}
+
+  # k6 load test. Adjust the command that starts the server and its URL.
+  load:
+    permissions:
+      contents: read
+    uses: JonathanTSilva/.github/.github/workflows/load.yml@v1
+    with:
+      script: tests/load/main.js
+      server-command: pnpm start
+      server-url: http://localhost:3000
+{% endif %}
+{% if bench %}
+
+  # Benchmarks, with the history on the gh-pages branch. Adjust the command.
+  bench:
+    permissions:
+      contents: write
+    uses: JonathanTSilva/.github/.github/workflows/bench.yml@v1
+    with:
+{% if stack == 'go' %}
+      command: go test -run '^$' -bench . ./... | tee bench-output.txt
+      output-file: bench-output.txt
+      tool: go
+{% elif stack == 'rust' %}
+      command: cargo bench -- --output-format bencher | tee bench-output.txt
+      output-file: bench-output.txt
+      tool: cargo
+{% elif stack == 'python' %}
+      command: uv run pytest --benchmark-json bench-output.json
+      output-file: bench-output.json
+      tool: pytest
+{% else %}
+      # Write a JSON array of {name, unit, value} to the output file.
+      command: ./bench.sh
+      output-file: bench-output.json
+      tool: customSmallerIsBetter
+{% endif %}
+{% endif %}
+{% if reports %}
+
+  # Allure report under /reports/ on gh-pages. Add a job that uploads the
+  # allure-results artifact and list it in needs.
+  reports:
+{% if stack != 'none' %}
+    needs: {{ stack }}
+{% endif %}
+    permissions:
+      contents: write
+    uses: JonathanTSilva/.github/.github/workflows/reports.yml@v1
+{% endif %}
 {% if has_release %}
 
   release:
@@ -67,6 +152,12 @@ jobs:
 {% if stack != 'none' %}
       - {{ stack }}
 {% endif %}
+{% if visibility == 'public' and stack in ['python', 'go'] %}
+      - coverage
+{% endif %}
+{% for suite in ['e2e', 'lighthouse', 'load', 'bench', 'reports'] if suite_flags[suite] %}
+      - {{ suite }}
+{% endfor %}
 {% if has_release %}
       - release
 {% endif %}

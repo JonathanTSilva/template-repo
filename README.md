@@ -29,7 +29,7 @@ uv lock                                   # stack: python
 npx --yes pnpm@9 install --lockfile-only  # stack: node
 ```
 
-`jts-ops new` does this automatically. The `shell` and `none` stacks need no lockfile.
+`jts-ops new` does this automatically. The other stacks need no lockfile (the `rust` skeleton ships its `Cargo.lock`).
 
 ## Questions
 
@@ -38,13 +38,21 @@ npx --yes pnpm@9 install --lockfile-only  # stack: node
 | `repo_name` | Lowercase kebab-case, `^[a-z0-9]+(-[a-z0-9]+)*$` |
 | `description` | One line, also used for the GitHub description |
 | `kind` | One of the kind ids in [`standard.yml`](https://github.com/JonathanTSilva/.github/blob/main/standard.yml) |
-| `stack` | `python`, `node`, `shell` or `none` |
+| `stack` | `python`, `node`, `shell`, `go`, `rust`, `c-cpp`, `latex` or `none` |
 | `visibility` | `public` or `private`. Private repos get static badges only |
 | `license` | `mit`, `cc-by-4.0`, `mit+cc-by-4.0`, `proprietary`, `agpl-3.0`. Company-owned repos keep the company license and are not rendered from this template |
 | `status` | `concept`, `wip`, `active` or `inactive` |
 | `has_release` | Adds the release-please job and the release badge |
 | `year` | Copyright year, defaults to the current year |
 | `skeleton` | `true` by default. Set `false` to skip the project skeleton below when adopting an existing repo |
+| `e2e` | Adds the Playwright job (`e2e.yml`). Default `false` |
+| `lighthouse` | Adds the Lighthouse CI job (`lighthouse.yml`). Default `false` |
+| `load` | Adds the k6 load-test job (`load.yml`). Default `false` |
+| `bench` | Adds the benchmark job with history on `gh-pages` (`bench.yml`). Default `false` |
+| `reports` | Adds the Allure report job (`reports.yml`). Default `false` |
+| `sonar` | Adds the SonarQube Cloud quality-gate badge on public repos. No CI job: the project uses Automatic Analysis. Default `false` |
+
+The suite flags only add a job to `ci.yml` (adjust its inputs after rendering) and default to `false`, so `copier update` never changes an existing repo's jobs. Public `python` and `go` repos also get a `coverage` job (Codecov through OIDC) and the coverage badge.
 
 ## What you get
 
@@ -57,6 +65,10 @@ A minimal project skeleton, so a new repo starts with green CI:
 | `python` | `pyproject.toml` (`uv_build`, ruff, pyright strict, pytest with coverage), `.python-version`, `src/<package>/__init__.py`, `tests/test_smoke.py` |
 | `node` | `package.json` (ESM, `packageManager` pnpm 9, `lint`, `typecheck` and `test` scripts), `eslint.config.js`, `tsconfig.json`, `src/index.ts`, `tests/index.test.ts` |
 | `shell` | `bin/<repo>.sh` (with `--help`), `test/<repo>.bats` |
+| `go` | `go.mod`, `sum.go`, `sum_test.go` |
+| `rust` | `Cargo.toml`, `Cargo.lock`, `src/lib.rs` |
+| `c-cpp` | `CMakeLists.txt` (C++17, ctest, warnings as errors), `src/sum.{hpp,cpp}`, `tests/sum_test.cpp` |
+| `latex` | `main.tex` |
 | `none` | nothing |
 
 Skeleton files are listed in `_skip_if_exists`, so rendering onto an existing repo never overwrites real code.
