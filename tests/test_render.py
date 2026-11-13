@@ -383,6 +383,71 @@ def test_settings_allow_no_wildcard_git(tmp_path, stack):
         assert not (entry.startswith("Bash(git") and entry.endswith("*)")), entry
 
 
+# Wildcard entries that predate the go, rust, c-cpp and latex stacks. They are the only
+# ones allowed. Every other allow entry must be an exact command, because wildcards let
+# an agent pass flags such as `-exec`, `-toolexec`, `-vettool`, `cmake -P` or `ctest -S`.
+LEGACY_WILDCARD_ALLOW = {
+    "python": {
+        "Bash(uv sync*)",
+        "Bash(uv run pytest*)",
+        "Bash(uv run ruff*)",
+        "Bash(uv run pyright*)",
+    },
+    "node": {
+        "Bash(pnpm install*)",
+        "Bash(pnpm test*)",
+        "Bash(pnpm run test*)",
+        "Bash(pnpm lint*)",
+        "Bash(pnpm run lint*)",
+        "Bash(pnpm typecheck*)",
+        "Bash(pnpm run typecheck*)",
+    },
+    "shell": {"Bash(shellcheck*)", "Bash(shfmt*)", "Bash(bats*)"},
+}
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_settings_allow_wildcards_only_for_the_legacy_stacks(tmp_path, stack):
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    wildcards = {e for e in settings["permissions"]["allow"] if e.endswith("*)")}
+    assert wildcards == LEGACY_WILDCARD_ALLOW.get(stack, set())
+
+
+@pytest.mark.parametrize(
+    "stack,expected",
+    (
+        ("go", {"Bash(go test ./...)", "Bash(go vet ./...)", "Bash(gofmt -l .)"}),
+        (
+            "rust",
+            {
+                "Bash(cargo test --locked)",
+                "Bash(cargo build --locked)",
+                "Bash(cargo fmt --all --check)",
+                "Bash(cargo clippy --locked --all-targets --all-features -- -D warnings)",
+            },
+        ),
+        (
+            "c-cpp",
+            {
+                "Bash(cmake -S . -B build)",
+                "Bash(cmake --build build)",
+                "Bash(ctest --test-dir build --output-on-failure)",
+            },
+        ),
+        (
+            "latex",
+            {"Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex)"},
+        ),
+    ),
+)
+def test_new_stack_allow_rules_are_exact_commands(tmp_path, stack, expected):
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    allow = {e for e in settings["permissions"]["allow"] if not e.startswith("Bash(git")}
+    assert allow == expected | {"Bash(pre-commit run --all-files)"}
+
+
 @pytest.mark.parametrize("stack", STACKS)
 def test_settings_allow_no_wildcard_pre_commit(tmp_path, stack):
     # A wildcard lets agents pass --config / -c and run arbitrary hooks.
