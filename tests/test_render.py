@@ -475,8 +475,6 @@ def test_readme_structure_order(tmp_path):
         text.index(marker)
         for marker in (
             "<!-- brand:header:end -->",
-            "# sample-repo",
-            "A sample repository rendered from the template.",
             "<!-- badges:start -->",
             "## What it is",
             "## Quick start",
@@ -499,7 +497,9 @@ def test_readme_brand_blocks_have_placeholder_header_and_shared_footer(tmp_path)
     ]
     assert 'srcset="assets/brand/header-PLACEHOLDER-dark.svg"' in header
     assert 'src="assets/brand/header-PLACEHOLDER-light.svg"' in header
+    assert 'alt="sample-repo: A sample repository rendered from the template."' in header
     assert "<picture>" in header and "</picture>" in header
+    assert "# sample-repo" not in text
     footer = text[text.index("<!-- brand:footer:start -->") :]
     assert '<p align="right"><a href="https://www.jontobias.com">' in footer
     base = "https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand"

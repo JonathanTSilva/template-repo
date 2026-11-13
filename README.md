@@ -1,4 +1,9 @@
-# template-repo
+<!-- brand:header:start -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/header-9161af12-dark.svg">
+  <img alt="template-repo: Copier template that generates new repositories with the standard structure and files" src="assets/brand/header-9161af12-light.svg" width="100%">
+</picture>
+<!-- brand:header:end -->
 
 [![Coverage](https://codecov.io/gh/JonathanTSilva/template-repo/graph/badge.svg)](https://codecov.io/gh/JonathanTSilva/template-repo)
 [![Quality](https://sonarcloud.io/api/project_badges/measure?project=JonathanTSilva_template-repo&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JonathanTSilva_template-repo)
@@ -105,3 +110,10 @@ See the [contributing guide](https://github.com/JonathanTSilva/.github/blob/main
 ## License
 
 MIT. See [LICENSE](LICENSE). Rendered repositories get the license you choose.
+
+<!-- brand:footer:start -->
+<p align="right"><a href="https://www.jontobias.com"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand/jontobias-dark.svg">
+  <img alt="jontobias.com" src="https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand/jontobias-light.svg" width="200">
+</picture></a></p>
+<!-- brand:footer:end -->
