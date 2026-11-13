@@ -20,6 +20,26 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: chore(deps)
+{% elif stack == 'go' %}
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      go-dependencies:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore(deps)
+{% elif stack == 'rust' %}
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      rust-dependencies:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore(deps)
 {% endif %}
   - package-ecosystem: github-actions
     directory: /

@@ -1,0 +1,8 @@
+{% set pkg = ('pkg' ~ repo_name if repo_name[0] in '0123456789' else repo_name) | replace('-', '') %}
+// Package {{ pkg }} is a starting point for {{ repo_name }}.
+package {{ pkg }}
+
+// Sum adds two numbers.
+func Sum(a, b int) int {
+	return a + b
+}

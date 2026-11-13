@@ -22,7 +22,8 @@ STANDARD = yaml.safe_load(
     (LIVE_STANDARD if LIVE_STANDARD.is_file() else VENDORED_STANDARD).read_text()
 )
 MARKDOWNLINT = "markdownlint-cli2@0.18.1"
-STACKS = ("python", "node", "shell", "none")
+STACKS = ("python", "node", "shell", "go", "rust", "c-cpp", "latex", "none")
+FLAGS = ("e2e", "lighthouse", "load", "bench", "reports", "sonar")
 
 BASE = {
     "repo_name": "sample-repo",
@@ -138,15 +139,85 @@ def test_badge_order_public(tmp_path):
     render(tmp_path, visibility="public", has_release=True)
     lines = badge_lines((tmp_path / "README.md").read_text())
     labels = badge_labels((tmp_path / "README.md").read_text())
-    assert labels == ["Status", "CI", "Release", "Scorecard", "License", "Codespaces"]
-    assert all("style=flat-square" in line for line in lines)
+    assert labels == ["Status", "CI", "Release", "Coverage", "Scorecard", "License", "Codespaces"]
+    # Codecov serves its own badge image, so the shields style flag only applies to the others.
+    assert all("style=flat-square" in line for line in lines if "codecov.io" not in line)
     assert "https://www.repostatus.org/#active" in lines[0]
 
 
 def test_badge_order_public_without_release(tmp_path):
     render(tmp_path, visibility="public", has_release=False)
     labels = badge_labels((tmp_path / "README.md").read_text())
-    assert labels == ["Status", "CI", "Scorecard", "License", "Codespaces"]
+    assert labels == ["Status", "CI", "Coverage", "Scorecard", "License", "Codespaces"]
+
+
+@pytest.mark.parametrize("stack", ("python", "go"))
+def test_coverage_badge_and_job_for_public_stacks_with_coverage(tmp_path, stack):
+    dst = render(tmp_path, stack=stack)
+    readme = (dst / "README.md").read_text()
+    assert (
+        "[![Coverage](https://codecov.io/gh/JonathanTSilva/sample-repo/graph/badge.svg)]"
+        "(https://codecov.io/gh/JonathanTSilva/sample-repo)"
+    ) in readme
+    jobs = workflow(dst)["jobs"]
+    coverage = jobs["coverage"]
+    assert coverage["uses"].endswith("workflows/coverage.yml@v1")
+    assert coverage["needs"] == stack
+    assert coverage["permissions"] == {"actions": "read", "contents": "read", "id-token": "write"}
+    assert coverage["with"] == {
+        "artifact": "go-coverage" if stack == "go" else "coverage",
+        "flags": stack,
+    }
+    assert "coverage" in jobs["ci"]["needs"]
+
+
+@pytest.mark.parametrize("stack", ("node", "shell", "rust", "c-cpp", "latex", "none"))
+def test_no_coverage_without_a_coverage_artifact(tmp_path, stack):
+    dst = render(tmp_path, stack=stack)
+    assert "Coverage" not in badge_labels((dst / "README.md").read_text())
+    assert "coverage" not in workflow(dst)["jobs"]
+
+
+@pytest.mark.parametrize("stack", ("python", "go"))
+def test_private_repo_has_no_coverage_or_quality(tmp_path, stack):
+    dst = render(tmp_path, stack=stack, visibility="private", license="proprietary", sonar=True)
+    readme = (dst / "README.md").read_text()
+    assert "codecov.io" not in readme and "sonarcloud.io" not in readme
+    assert "coverage" not in workflow(dst)["jobs"]
+
+
+def test_sonar_adds_only_the_quality_badge(tmp_path):
+    off = render(tmp_path / "off", stack="rust")
+    on = render(tmp_path / "on", stack="rust", sonar=True)
+    assert "Quality" not in badge_labels((off / "README.md").read_text())
+    labels = badge_labels((on / "README.md").read_text())
+    assert labels == ["Status", "CI", "Release", "Quality", "Scorecard", "License", "Codespaces"]
+    line = next(
+        x for x in badge_lines((on / "README.md").read_text()) if x.startswith("[![Quality")
+    )
+    assert line == (
+        "[![Quality](https://sonarcloud.io/api/project_badges/measure"
+        "?project=JonathanTSilva_sample-repo&metric=alert_status)]"
+        "(https://sonarcloud.io/summary/new_code?id=JonathanTSilva_sample-repo)"
+    )
+    # Automatic Analysis: no CI job and no secret.
+    assert workflow(on)["jobs"].keys() == workflow(off)["jobs"].keys()
+    assert "SONAR_TOKEN" not in (on / ".github/workflows/ci.yml").read_text()
+
+
+def test_badge_order_with_everything(tmp_path):
+    dst = render(tmp_path, stack="go", sonar=True)
+    labels = badge_labels((dst / "README.md").read_text())
+    assert labels == [
+        "Status",
+        "CI",
+        "Release",
+        "Coverage",
+        "Quality",
+        "Scorecard",
+        "License",
+        "Codespaces",
+    ]
 
 
 def test_private_repo_static_badges_only(tmp_path):
@@ -184,14 +255,15 @@ def test_company_license_is_not_offered(tmp_path):
         render(tmp_path, license="company")
 
 
-@pytest.mark.parametrize("stack,job", (("python", "python"), ("node", "node"), ("shell", "shell")))
-def test_ci_calls_stack_workflow(tmp_path, stack, job):
+@pytest.mark.parametrize("stack", [s for s in STACKS if s != "none"])
+def test_ci_calls_stack_workflow(tmp_path, stack):
     render(tmp_path, stack=stack)
     text = (tmp_path / ".github/workflows/ci.yml").read_text()
     assert f"workflows/{stack}.yml@v1" in text
     ci = workflow(tmp_path)
     jobs = ci["jobs"]
-    assert job in jobs
+    assert stack in jobs
+    assert jobs[stack]["permissions"] == {"contents": "read"}
     assert set(jobs["ci"]["needs"]) == set(jobs) - {"ci"}
     assert jobs["ci"]["if"] == "always()"
     assert jobs["ci"]["name"] == "ci"
@@ -260,6 +332,10 @@ def test_release_job_only_with_has_release(tmp_path):
         ("python", {"uv", "github-actions", "devcontainers"}),
         ("node", {"npm", "github-actions", "devcontainers"}),
         ("shell", {"github-actions", "devcontainers"}),
+        ("go", {"gomod", "github-actions", "devcontainers"}),
+        ("rust", {"cargo", "github-actions", "devcontainers"}),
+        ("c-cpp", {"github-actions", "devcontainers"}),
+        ("latex", {"github-actions", "devcontainers"}),
         ("none", {"github-actions", "devcontainers"}),
     ),
 )
@@ -305,6 +381,71 @@ def test_settings_allow_no_wildcard_git(tmp_path, stack):
     settings = json.loads((tmp_path / ".claude/settings.json").read_text())
     for entry in settings["permissions"]["allow"]:
         assert not (entry.startswith("Bash(git") and entry.endswith("*)")), entry
+
+
+# Wildcard entries that predate the go, rust, c-cpp and latex stacks. They are the only
+# ones allowed. Every other allow entry must be an exact command, because wildcards let
+# an agent pass flags such as `-exec`, `-toolexec`, `-vettool`, `cmake -P` or `ctest -S`.
+LEGACY_WILDCARD_ALLOW = {
+    "python": {
+        "Bash(uv sync*)",
+        "Bash(uv run pytest*)",
+        "Bash(uv run ruff*)",
+        "Bash(uv run pyright*)",
+    },
+    "node": {
+        "Bash(pnpm install*)",
+        "Bash(pnpm test*)",
+        "Bash(pnpm run test*)",
+        "Bash(pnpm lint*)",
+        "Bash(pnpm run lint*)",
+        "Bash(pnpm typecheck*)",
+        "Bash(pnpm run typecheck*)",
+    },
+    "shell": {"Bash(shellcheck*)", "Bash(shfmt*)", "Bash(bats*)"},
+}
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_settings_allow_wildcards_only_for_the_legacy_stacks(tmp_path, stack):
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    wildcards = {e for e in settings["permissions"]["allow"] if e.endswith("*)")}
+    assert wildcards == LEGACY_WILDCARD_ALLOW.get(stack, set())
+
+
+@pytest.mark.parametrize(
+    "stack,expected",
+    (
+        ("go", {"Bash(go test ./...)", "Bash(go vet ./...)", "Bash(gofmt -l .)"}),
+        (
+            "rust",
+            {
+                "Bash(cargo test --locked)",
+                "Bash(cargo build --locked)",
+                "Bash(cargo fmt --all --check)",
+                "Bash(cargo clippy --locked --all-targets --all-features -- -D warnings)",
+            },
+        ),
+        (
+            "c-cpp",
+            {
+                "Bash(cmake -S . -B build)",
+                "Bash(cmake --build build)",
+                "Bash(ctest --test-dir build --output-on-failure)",
+            },
+        ),
+        (
+            "latex",
+            {"Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex)"},
+        ),
+    ),
+)
+def test_new_stack_allow_rules_are_exact_commands(tmp_path, stack, expected):
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    allow = {e for e in settings["permissions"]["allow"] if not e.startswith("Bash(git")}
+    assert allow == expected | {"Bash(pre-commit run --all-files)"}
 
 
 @pytest.mark.parametrize("stack", STACKS)
@@ -361,7 +502,18 @@ def test_invalid_repo_name_rejected(tmp_path):
 def test_kind_choices_match_standard():
     questions = yaml.safe_load((ROOT / "copier.yml").read_text())
     assert list(questions["kind"]["choices"]) == [k["id"] for k in STANDARD["kinds"]]
-    assert list(questions["stack"]["choices"]) == ["python", "node", "shell", "none"]
+    assert list(questions["stack"]["choices"]) == [
+        "python",
+        "node",
+        "shell",
+        "go",
+        "rust",
+        "c-cpp",
+        "latex",
+        "none",
+    ]
+    for flag in FLAGS:
+        assert questions[flag]["type"] == "bool" and questions[flag]["default"] is False
     assert "company" not in questions["license"]["choices"]
     assert set(questions["license"]["choices"]) == set(STANDARD["licenses"]) - {"company"}
 
@@ -380,6 +532,20 @@ def test_rendered_workflows_lint(tmp_path, stack, visibility):
             "actionlint",
             *sorted(str(p) for p in (tmp_path / ".github/workflows").glob("*.yml")),
         ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("stack", ("python", "go", "none"))
+def test_rendered_workflows_with_all_suites_lint(tmp_path, stack):
+    render(tmp_path, stack=stack, **dict.fromkeys(FLAGS, True))
+    if shutil.which("uvx") is None:
+        pytest.skip("uvx not available")
+    result = subprocess.run(
+        ["uvx", "--from", "actionlint-py", "actionlint", ".github/workflows/ci.yml"],
         cwd=tmp_path,
         capture_output=True,
         text=True,
@@ -443,12 +609,20 @@ def test_readme_description_once_and_neutral(tmp_path):
         ("python", 'uv run python -c "import sample_repo"'),
         ("node", "pnpm test"),
         ("shell", "bin/sample-repo.sh --help"),
+        ("go", "go test ./..."),
+        ("rust", "cargo test"),
+        ("c-cpp", "ctest --test-dir build --output-on-failure"),
     ),
 )
 def test_readme_usage_example_per_stack(tmp_path, stack, example):
     text = (render(tmp_path, stack=stack) / "README.md").read_text()
     usage = text[text.index("## Usage") : text.index("## Docs")]
     assert f"```sh\n{example}\n```" in usage
+
+
+def test_readme_latex_usage_names_the_pdf(tmp_path):
+    text = (render(tmp_path, stack="latex") / "README.md").read_text()
+    assert "build/main.pdf" in text[text.index("## Usage") : text.index("## Docs")]
 
 
 def test_readme_without_stack_has_no_usage(tmp_path):
@@ -607,3 +781,187 @@ def test_settings_deny_git_output_and_ext_diff(tmp_path):
         "Bash(git*--no-index*)",
     ):
         assert entry in deny, entry
+
+
+@pytest.mark.parametrize("stack", [s for s in STACKS if s != "none"])
+def test_stack_tooling_is_rendered(tmp_path, stack):
+    dst = render(tmp_path, stack=stack)
+    agents = (dst / "AGENTS.md").read_text()
+    assert "no language stack" not in agents and "no test command" not in agents
+    settings = json.loads((dst / ".claude/settings.json").read_text())
+    stack_rules = [r for r in settings["permissions"]["allow"] if not r.startswith("Bash(git")]
+    assert len(stack_rules) > 1  # the stack's commands, beside pre-commit
+    config = (dst / ".pre-commit-config.yaml").read_text()
+    if stack in ("go", "rust"):
+        assert "repo: local" in config
+
+
+@pytest.mark.parametrize(
+    "stack,files",
+    (
+        ("go", ["go.mod", "sum.go", "sum_test.go"]),
+        ("rust", ["Cargo.toml", "Cargo.lock", "src/lib.rs"]),
+        ("c-cpp", ["CMakeLists.txt", "src/sum.cpp", "src/sum.hpp", "tests/sum_test.cpp"]),
+        ("latex", ["main.tex"]),
+    ),
+)
+def test_new_stack_skeleton_files(tmp_path, stack, files):
+    with_skeleton = render(tmp_path / "yes", stack=stack)
+    for name in files:
+        assert (with_skeleton / name).is_file(), name
+    without = render(tmp_path / "no", stack=stack, skeleton=False)
+    for name in files:
+        assert not (without / name).exists(), name
+
+
+@pytest.mark.parametrize("stack", ("go", "rust", "c-cpp", "latex"))
+def test_new_stack_skeleton_never_overwrites_existing_files(tmp_path, stack):
+    first = render(tmp_path / "a", stack=stack)
+    skeleton = [
+        p.relative_to(first)
+        for p in first.rglob("*")
+        if p.is_file()
+        and p.name
+        in {"go.mod", "sum.go", "sum_test.go", "Cargo.toml", "Cargo.lock", "lib.rs"}
+        | {"CMakeLists.txt", "sum.cpp", "sum.hpp", "sum_test.cpp", "main.tex"}
+    ]
+    assert skeleton
+    existing = tmp_path / "b"
+    for rel in skeleton:
+        (existing / rel).parent.mkdir(parents=True, exist_ok=True)
+        (existing / rel).write_text("real code\n")
+    render(existing, stack=stack)
+    for rel in skeleton:
+        assert (existing / rel).read_text() == "real code\n", rel
+
+
+def test_default_answers_add_no_suite_jobs(tmp_path):
+    # An existing repo updating to this version keeps its ci.yml jobs: every new flag is off.
+    jobs = workflow(render(tmp_path, stack="node", has_release=False))["jobs"]
+    assert set(jobs) == {"hygiene", "docs", "security", "node", "ci"}
+
+
+@pytest.mark.parametrize("flag", ("e2e", "lighthouse", "load", "bench", "reports"))
+def test_suite_flag_adds_its_job(tmp_path, flag):
+    jobs = workflow(render(tmp_path, stack="python", has_release=False, **{flag: True}))["jobs"]
+    job = jobs[flag]
+    assert job["uses"].endswith(f"workflows/{flag}.yml@v1")
+    assert job["permissions"] == {"contents": "write" if flag in ("bench", "reports") else "read"}
+    assert flag in jobs["ci"]["needs"]
+    assert set(jobs["ci"]["needs"]) == set(jobs) - {"ci"}
+
+
+@pytest.mark.parametrize(
+    "stack,tool", (("go", "go"), ("rust", "cargo"), ("python", "pytest"), ("shell", None))
+)
+def test_bench_job_inputs_match_the_stack(tmp_path, stack, tool):
+    bench = workflow(render(tmp_path, stack=stack, bench=True))["jobs"]["bench"]
+    assert bench["with"]["command"]
+    assert bench["with"]["tool"] == (tool or "customSmallerIsBetter")
+
+
+def test_go_package_name_is_valid_for_digit_names(tmp_path):
+    dst = render(tmp_path, stack="go", repo_name="3d-viewer")
+    assert "package pkg3dviewer\n" in (dst / "sum.go").read_text()
+    assert "module github.com/JonathanTSilva/3d-viewer\n" in (dst / "go.mod").read_text()
+
+
+def _have(*tools: str) -> bool:
+    return all(shutil.which(t) for t in tools)
+
+
+@pytest.mark.skeleton
+@pytest.mark.skipif(not _have("go", "gofmt"), reason="go toolchain not installed")
+def test_go_skeleton_passes_its_ci_commands(tmp_path):
+    render(tmp_path, stack="go", repo_name="my-tool")
+    out = subprocess.run(["gofmt", "-l", "."], cwd=tmp_path, capture_output=True, text=True)
+    assert out.returncode == 0 and out.stdout == "", out.stdout
+    run(["go", "vet", "./..."], tmp_path)
+    run(["go", "test", "-race", "-coverprofile=coverage.out", "./..."], tmp_path)
+    assert (tmp_path / "coverage.out").is_file()
+
+
+@pytest.mark.skeleton
+@pytest.mark.skipif(not _have("cargo"), reason="rust toolchain not installed")
+def test_rust_skeleton_passes_its_ci_commands(tmp_path):
+    render(tmp_path, stack="rust", repo_name="my-tool")
+    lock = (tmp_path / "Cargo.lock").read_text()
+    for cmd in (
+        ["cargo", "fmt", "--all", "--check"],
+        ["cargo", "clippy", "--locked", "--all-targets", "--all-features", "--", "-D", "warnings"],
+        ["cargo", "test", "--locked", "--all-features"],
+    ):
+        run(cmd, tmp_path)
+    assert (tmp_path / "Cargo.lock").read_text() == lock  # --locked never rewrote it
+
+
+@pytest.mark.skeleton
+@pytest.mark.skipif(not _have("cmake", "ctest", "clang-tidy", "jq"), reason="C++ toolchain missing")
+def test_c_cpp_skeleton_passes_its_ci_commands(tmp_path):
+    render(tmp_path, stack="c-cpp", repo_name="my-tool")
+    run(
+        [
+            "cmake",
+            "-S",
+            ".",
+            "-B",
+            "build",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        ],
+        tmp_path,
+    )
+    run(["cmake", "--build", "build", "--parallel"], tmp_path)
+    run(["ctest", "--test-dir", "build", "--output-on-failure"], tmp_path)
+    # the same file list and checks as the shared c-cpp workflow
+    files = subprocess.run(
+        ["jq", "-r", ".[].file", "build/compile_commands.json"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    ).stdout.split()
+    sources = sorted({f for f in files if "/build/" not in f})
+    assert sources
+    run(
+        [
+            "clang-tidy",
+            "-p",
+            "build",
+            "--warnings-as-errors=*",
+            "--checks=clang-analyzer-*,bugprone-*,performance-*",
+            *sources,
+        ],
+        tmp_path,
+    )
+    if shutil.which("cppcheck"):
+        run(
+            [
+                "cppcheck",
+                "--project=build/compile_commands.json",
+                "--enable=warning,style,performance,portability",
+                "--suppress=missingIncludeSystem",
+                "--inline-suppr",
+                "--error-exitcode=1",
+                "--quiet",
+            ],
+            tmp_path,
+        )
+
+
+@pytest.mark.skeleton
+@pytest.mark.skipif(not _have("latexmk", "pdflatex"), reason="LaTeX toolchain not installed")
+def test_latex_skeleton_passes_its_ci_commands(tmp_path):
+    render(tmp_path, stack="latex", repo_name="my-tool")
+    run(
+        [
+            "latexmk",
+            "-pdf",
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "-file-line-error",
+            "-outdir=build",
+            "main.tex",
+        ],
+        tmp_path,
+    )
+    assert (tmp_path / "build/main.pdf").is_file()

@@ -48,4 +48,36 @@ repos:
     rev: v3.14.1-1
     hooks:
       - id: shfmt
+{% elif stack == 'go' %}
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: bash -c 'out="$(gofmt -l .)"; if [ -n "$out" ]; then echo "$out"; exit 1; fi'
+        language: system
+        types: [go]
+        pass_filenames: false
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+{% elif stack == 'rust' %}
+
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy --locked --all-targets --all-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
 {% endif %}
