@@ -38,6 +38,18 @@ jobs:
       contents: read
     uses: JonathanTSilva/.github/.github/workflows/python.yml@v1
 
+  # Codecov through OIDC, public repos only. Never fails CI.
+  coverage:
+    needs: python
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: JonathanTSilva/.github/.github/workflows/coverage.yml@v1
+    with:
+      artifact: coverage
+      flags: python
+
   # The one check the repository ruleset requires. Skipped jobs are fine.
   ci:
     name: ci
@@ -47,6 +59,7 @@ jobs:
       - docs
       - security
       - python
+      - coverage
     runs-on: ubuntu-latest
     permissions: {}
     steps:

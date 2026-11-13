@@ -1,5 +1,8 @@
 # template-repo
 
+[![Coverage](https://codecov.io/gh/JonathanTSilva/template-repo/graph/badge.svg)](https://codecov.io/gh/JonathanTSilva/template-repo)
+[![Quality](https://sonarcloud.io/api/project_badges/measure?project=JonathanTSilva_template-repo&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JonathanTSilva_template-repo)
+
 The [Copier](https://copier.readthedocs.io) template that every active repository of JonathanTSilva is rendered from. It produces the README, LICENSE, `AGENTS.md`, `CLAUDE.md`, the `.claude` settings and agents, CI, Dependabot, the dev container and the other files in the GitHub standard.
 
 This is not a GitHub template repository. "Use this template" would copy unrendered Jinja, so new repositories are created with `jts-ops new`, which renders this template.
