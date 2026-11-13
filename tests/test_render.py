@@ -470,10 +470,11 @@ def test_agents_md_sections(tmp_path):
 def test_readme_structure_order(tmp_path):
     render(tmp_path)
     text = (tmp_path / "README.md").read_text()
-    assert text.startswith("# sample-repo\n")
+    assert text.startswith("<!-- brand:header:start -->\n")
     positions = [
         text.index(marker)
         for marker in (
+            "<!-- brand:header:end -->",
             "# sample-repo",
             "A sample repository rendered from the template.",
             "<!-- badges:start -->",
@@ -483,9 +484,34 @@ def test_readme_structure_order(tmp_path):
             "## Docs",
             "## Contributing",
             "## License",
+            "<!-- brand:footer:start -->",
+            "<!-- brand:footer:end -->",
         )
     ]
     assert positions == sorted(positions)
+    assert text.endswith("<!-- brand:footer:end -->\n")
+
+
+def test_readme_brand_blocks_have_placeholder_header_and_shared_footer(tmp_path):
+    text = (render(tmp_path) / "README.md").read_text()
+    header = text[
+        text.index("<!-- brand:header:start -->") : text.index("<!-- brand:header:end -->")
+    ]
+    assert 'srcset="assets/brand/header-PLACEHOLDER-dark.svg"' in header
+    assert 'src="assets/brand/header-PLACEHOLDER-light.svg"' in header
+    assert "<picture>" in header and "</picture>" in header
+    footer = text[text.index("<!-- brand:footer:start -->") :]
+    assert '<p align="right"><a href="https://www.jontobias.com">' in footer
+    base = "https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand"
+    assert f'srcset="{base}/jontobias-dark.svg"' in footer
+    assert f'src="{base}/jontobias-light.svg"' in footer
+
+
+def test_markdownlint_allows_the_brand_html(tmp_path):
+    config = (render(tmp_path) / ".markdownlint-cli2.yaml").read_text()
+    assert "MD033" in config
+    for element in ("picture", "source", "img", "p", "a"):
+        assert element in config
 
 
 def test_answers_file_records_choices(tmp_path):
