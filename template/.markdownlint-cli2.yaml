@@ -2,5 +2,7 @@ config:
   MD013: false  # prose is one line per paragraph
   MD060: false  # table pipe spacing
   MD041: false  # CLAUDE.md starts with an import, not a heading
+  MD033:
+    allowed_elements: [picture, source, img, p, a]  # the brand header and footer
   MD024:
     siblings_only: true  # repeated headings under different parents are fine

@@ -3,6 +3,13 @@
 {% set license_names = {'mit': 'MIT', 'cc-by-4.0': 'CC BY 4.0', 'mit+cc-by-4.0': 'MIT (code) and CC BY 4.0 (content)', 'proprietary': 'proprietary, all rights reserved', 'agpl-3.0': 'AGPL-3.0'} %}
 {% set repo = 'JonathanTSilva/' ~ repo_name %}
 {% set has_coverage = stack in ['python', 'go'] %}
+<!-- brand:header:start -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/header-PLACEHOLDER-dark.svg">
+  <img alt="{{ repo_name }}" src="assets/brand/header-PLACEHOLDER-light.svg" width="100%">
+</picture>
+<!-- brand:header:end -->
+
 # {{ repo_name }}
 
 {{ description }}
@@ -153,3 +160,10 @@ See the [contributing guide](https://github.com/JonathanTSilva/.github/blob/main
 ## License
 
 {{ license_names[license] }}. See [LICENSE](LICENSE).
+
+<!-- brand:footer:start -->
+<p align="right"><a href="https://www.jontobias.com"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand/jontobias-dark.svg">
+  <img alt="jontobias.com" src="https://raw.githubusercontent.com/JonathanTSilva/.github/main/assets/brand/jontobias-light.svg" width="200">
+</picture></a></p>
+<!-- brand:footer:end -->
