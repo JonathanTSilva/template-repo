@@ -41,7 +41,7 @@ npx --yes pnpm@9 install --lockfile-only  # stack: node
 
 ## README brand
 
-The rendered README starts with a brand header and ends with a shared footer button, each between `<!-- brand:header:start -->` / `<!-- brand:header:end -->` and `<!-- brand:footer:start -->` / `<!-- brand:footer:end -->` markers. The header points at `assets/brand/header-PLACEHOLDER-{light,dark}.svg`, which do not exist yet: `jts-ops new` and `jts-ops adopt` run `jts-ops brand`, which generates the header SVGs (transparent, light and dark, named by a hash of the repo name and description) and rewrites only the two marker blocks. To regenerate a header after a rename or description change, run `jts-ops brand <repo> --execute`. The footer button is hosted in [`.github`](https://github.com/JonathanTSilva/.github/tree/main/assets/brand).
+The rendered README starts with a brand header and ends with a shared footer button, each between `<!-- brand:header:start -->` / `<!-- brand:header:end -->` and `<!-- brand:footer:start -->` / `<!-- brand:footer:end -->` markers. The header points at `assets/brand/header-PLACEHOLDER-{light,dark}.svg`. `jts-ops new` and `jts-ops adopt` generate them (they run `jts-ops brand`, which writes the header SVGs, transparent, light and dark, named by a hash of the repo name and description, and rewrites only the two marker blocks). `jts-ops brand <repo>` regenerates them after a rename or description change; add `--execute` to write. The footer button is hosted in [`.github`](https://github.com/JonathanTSilva/.github/tree/main/assets/brand).
 
 ## Questions
 
