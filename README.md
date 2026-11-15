@@ -1,7 +1,7 @@
 <!-- brand:header:start -->
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/header-9161af12-dark.svg">
-  <img alt="template-repo: Copier template that generates new repositories with the standard structure and files" src="assets/brand/header-9161af12-light.svg" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/header-b22afa33-dark.svg">
+  <img alt="template-repo: Copier template that generates new repositories with the standard structure and files" src="assets/brand/header-b22afa33-light.svg" width="100%">
 </picture>
 <!-- brand:header:end -->
 
