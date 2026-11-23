@@ -22,3 +22,6 @@ typeCheckingMode = "basic"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["skeleton: renders a project skeleton and runs its real CI commands (slow, needs network)"]
+
+[tool.coverage.report]
+fail_under = 98
