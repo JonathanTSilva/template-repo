@@ -21,6 +21,8 @@ LIVE_STANDARD = STANDARD_DIR / "standard.yml"
 STANDARD = yaml.safe_load(
     (LIVE_STANDARD if LIVE_STANDARD.is_file() else VENDORED_STANDARD).read_text()
 )
+# The shared workflows are pinned by SHA in the repo's own CI (Dependabot bumps it).
+PIN_SHA = re.findall(r"@([0-9a-f]{40}) # v", (ROOT / ".github/workflows/ci.yml").read_text())[0]
 MARKDOWNLINT = "markdownlint-cli2@0.18.1"
 STACKS = ("python", "node", "shell", "go", "rust", "c-cpp", "latex", "none")
 FLAGS = ("e2e", "lighthouse", "load", "bench", "reports", "sonar")
@@ -161,7 +163,7 @@ def test_coverage_badge_and_job_for_public_stacks_with_coverage(tmp_path, stack)
     ) in readme
     jobs = workflow(dst)["jobs"]
     coverage = jobs["coverage"]
-    assert coverage["uses"].endswith("workflows/coverage.yml@v1")
+    assert coverage["uses"].endswith(f"workflows/coverage.yml@{PIN_SHA}")
     assert coverage["needs"] == stack
     assert coverage["permissions"] == {"actions": "read", "contents": "read", "id-token": "write"}
     assert coverage["with"] == {
@@ -259,7 +261,7 @@ def test_company_license_is_not_offered(tmp_path):
 def test_ci_calls_stack_workflow(tmp_path, stack):
     render(tmp_path, stack=stack)
     text = (tmp_path / ".github/workflows/ci.yml").read_text()
-    assert f"workflows/{stack}.yml@v1" in text
+    assert f"workflows/{stack}.yml@{PIN_SHA}" in text
     ci = workflow(tmp_path)
     jobs = ci["jobs"]
     assert stack in jobs
@@ -280,7 +282,7 @@ def test_ci_without_stack_has_no_stack_job(tmp_path):
 def test_security_public_input(tmp_path, visibility, expected):
     render(tmp_path, visibility=visibility)
     security = workflow(tmp_path)["jobs"]["security"]
-    assert security["uses"].endswith("workflows/security.yml@v1")
+    assert security["uses"].endswith(f"workflows/security.yml@{PIN_SHA}")
     assert security.get("with", {}).get("public") is expected
     assert security["permissions"] == {
         "contents": "read",
@@ -310,7 +312,7 @@ def test_ci_triggers_and_permissions(tmp_path):
 def test_release_job_only_with_has_release(tmp_path):
     with_release = workflow(render(tmp_path / "yes", has_release=True))["jobs"]
     release = with_release["release"]
-    assert release["uses"].endswith("workflows/release.yml@v1")
+    assert release["uses"].endswith(f"workflows/release.yml@{PIN_SHA}")
     assert release["secrets"] == {"token": "${{ secrets.RELEASE_PLEASE_TOKEN }}"}
     assert release["permissions"] == {
         "contents": "write",
@@ -873,7 +875,7 @@ def test_default_answers_add_no_suite_jobs(tmp_path):
 def test_suite_flag_adds_its_job(tmp_path, flag):
     jobs = workflow(render(tmp_path, stack="python", has_release=False, **{flag: True}))["jobs"]
     job = jobs[flag]
-    assert job["uses"].endswith(f"workflows/{flag}.yml@v1")
+    assert job["uses"].endswith(f"workflows/{flag}.yml@{PIN_SHA}")
     assert job["permissions"] == {"contents": "write" if flag in ("bench", "reports") else "read"}
     assert flag in jobs["ci"]["needs"]
     assert set(jobs["ci"]["needs"]) == set(jobs) - {"ci"}
