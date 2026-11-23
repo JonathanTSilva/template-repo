@@ -22,9 +22,7 @@ STANDARD = yaml.safe_load(
     (LIVE_STANDARD if LIVE_STANDARD.is_file() else VENDORED_STANDARD).read_text()
 )
 # The shared workflows are pinned by SHA in the repo's own CI (Dependabot bumps it).
-PIN_SHA = re.search(r"@([0-9a-f]{40}) # v", (ROOT / ".github/workflows/ci.yml").read_text()).group(
-    1
-)
+PIN_SHA = re.findall(r"@([0-9a-f]{40}) # v", (ROOT / ".github/workflows/ci.yml").read_text())[0]
 MARKDOWNLINT = "markdownlint-cli2@0.18.1"
 STACKS = ("python", "node", "shell", "go", "rust", "c-cpp", "latex", "none")
 FLAGS = ("e2e", "lighthouse", "load", "bench", "reports", "sonar")
