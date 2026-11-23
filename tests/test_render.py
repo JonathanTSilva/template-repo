@@ -464,6 +464,8 @@ def test_agents_md_sections(tmp_path):
         assert f"## {heading}" in text
     for agent in ("architect", "builder", "mechanic"):
         assert f"`{agent}`" in text
+    assert "`agy` (headless)" in text
+    assert '-p "<prompt>"' in text
     assert "https://github.com/JonathanTSilva/.github/blob/main/handbook/" in text
 
 
