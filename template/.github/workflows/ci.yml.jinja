@@ -14,12 +14,12 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: read
-    uses: JonathanTSilva/.github/.github/workflows/pr-hygiene.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/pr-hygiene.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 
   docs:
     permissions:
       contents: read
-    uses: JonathanTSilva/.github/.github/workflows/lint-docs.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/lint-docs.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 
   security:
     # GitHub checks caller permissions statically, so all of them are granted
@@ -30,7 +30,7 @@ jobs:
       actions: read
       id-token: write
       security-events: write
-    uses: JonathanTSilva/.github/.github/workflows/security.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/security.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 {% if visibility == 'public' %}
     with:
       public: true
@@ -40,7 +40,7 @@ jobs:
   {{ stack }}:
     permissions:
       contents: read
-    uses: JonathanTSilva/.github/.github/workflows/{{ stack }}.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/{{ stack }}.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 {% endif %}
 {% if visibility == 'public' and stack in ['python', 'go'] %}
 
@@ -51,7 +51,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
-    uses: JonathanTSilva/.github/.github/workflows/coverage.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/coverage.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
     with:
       artifact: {{ 'go-coverage' if stack == 'go' else 'coverage' }}
       flags: {{ stack }}
@@ -62,7 +62,7 @@ jobs:
   e2e:
     permissions:
       contents: read
-    uses: JonathanTSilva/.github/.github/workflows/e2e.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/e2e.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 {% endif %}
 {% if lighthouse %}
 
@@ -70,7 +70,7 @@ jobs:
   lighthouse:
     permissions:
       contents: read
-    uses: JonathanTSilva/.github/.github/workflows/lighthouse.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/lighthouse.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
     with:
       build-command: pnpm run build
       static-dist-dir: dist
@@ -81,7 +81,7 @@ jobs:
   load:
     permissions:
       contents: read
-    uses: JonathanTSilva/.github/.github/workflows/load.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/load.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
     with:
       script: tests/load/main.js
       server-command: pnpm start
@@ -93,7 +93,7 @@ jobs:
   bench:
     permissions:
       contents: write
-    uses: JonathanTSilva/.github/.github/workflows/bench.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/bench.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
     with:
 {% if stack == 'go' %}
       command: go test -run '^$' -bench . ./... | tee bench-output.txt
@@ -124,7 +124,7 @@ jobs:
 {% endif %}
     permissions:
       contents: write
-    uses: JonathanTSilva/.github/.github/workflows/reports.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/reports.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
 {% endif %}
 {% if has_release %}
 
@@ -136,7 +136,7 @@ jobs:
       pull-requests: write
       id-token: write
       attestations: write
-    uses: JonathanTSilva/.github/.github/workflows/release.yml@v1
+    uses: JonathanTSilva/.github/.github/workflows/release.yml@d458adfb51e9628f7ec9714470d36e6bf62d4196 # v1.2.2
     secrets:
       token: {{ '${{ secrets.RELEASE_PLEASE_TOKEN }}' }}
 {% endif %}
