@@ -50,6 +50,18 @@ jobs:
       artifact: coverage
       flags: python
 
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      attestations: write
+    uses: JonathanTSilva/.github/.github/workflows/release.yml@41e78aaeff1979651002c8d5ea6ca3843670afe7 # v1.2.4
+    secrets:
+      token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
   # The one check the repository ruleset requires. Skipped jobs are fine.
   ci:
     name: ci
@@ -60,6 +72,7 @@ jobs:
       - security
       - python
       - coverage
+      - release
     runs-on: ubuntu-latest
     permissions: {}
     steps:
