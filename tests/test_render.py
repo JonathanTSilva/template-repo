@@ -12,6 +12,7 @@ from pathlib import Path
 import copier
 import pytest
 import yaml
+from pre_commit_hooks.end_of_file_fixer import main as end_of_file_fixer
 
 ROOT = Path(__file__).resolve().parent.parent
 VENDORED_STANDARD = ROOT / "tests/fixtures/standard.yml"
@@ -522,6 +523,14 @@ def test_answers_file_records_choices(tmp_path):
     render(tmp_path, stack="node")
     answers = yaml.safe_load((tmp_path / ".copier-answers.yml").read_text())
     assert answers["stack"] == "node" and answers["repo_name"] == "sample-repo"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_answers_file_passes_end_of_file_fixer(tmp_path, stack):
+    # The rendered repo runs end-of-file-fixer; it must not rewrite a fresh render.
+    answers = render(tmp_path, stack=stack) / ".copier-answers.yml"
+    assert answers.read_text().endswith("\n")
+    assert end_of_file_fixer([str(answers)]) == 0, repr(answers.read_text()[-40:])
 
 
 def test_invalid_repo_name_rejected(tmp_path):
