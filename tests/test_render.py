@@ -397,7 +397,6 @@ LEGACY_WILDCARD_ALLOW = {
         "Bash(uv run pyright*)",
     },
     "node": {
-        "Bash(pnpm install*)",
         "Bash(pnpm test*)",
         "Bash(pnpm run test*)",
         "Bash(pnpm lint*)",
@@ -448,16 +447,43 @@ def test_new_stack_allow_rules_are_exact_commands(tmp_path, stack, expected):
     render(tmp_path, stack=stack)
     settings = json.loads((tmp_path / ".claude/settings.json").read_text())
     allow = {e for e in settings["permissions"]["allow"] if not e.startswith("Bash(git")}
-    assert allow == expected | {"Bash(pre-commit run --all-files)"}
+    assert allow == expected
 
 
 @pytest.mark.parametrize("stack", STACKS)
-def test_settings_allow_no_wildcard_pre_commit(tmp_path, stack):
-    # A wildcard lets agents pass --config / -c and run arbitrary hooks.
+def test_settings_never_allow_pre_commit(tmp_path, stack):
+    # pre-commit runs any command .pre-commit-config.yaml lists, so it always prompts.
     render(tmp_path, stack=stack)
     settings = json.loads((tmp_path / ".claude/settings.json").read_text())
     for entry in settings["permissions"]["allow"]:
-        assert not (entry.startswith("Bash(pre-commit") and entry.endswith("*)")), entry
+        assert "pre-commit" not in entry, entry
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_settings_deny_edits_under_git_dir(tmp_path, stack):
+    # The allowed git commands honour .git/config, and hooks live in .git/hooks.
+    # Edit rules cover Write too; a Write(path) rule would match nothing.
+    render(tmp_path, stack=stack)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    deny = settings["permissions"]["deny"]
+    assert "Edit(/.git/**)" in deny
+    assert not [rule for rule in deny if rule.startswith(("Write(", "NotebookEdit("))]
+
+
+def test_settings_pnpm_install_is_frozen(tmp_path):
+    # `pnpm install <package>` adds any package from the registry, so only the lockfile install.
+    render(tmp_path, stack="node")
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text())
+    allow = settings["permissions"]["allow"]
+    assert "Bash(pnpm install --frozen-lockfile)" in allow
+    assert not [rule for rule in allow if rule.startswith("Bash(pnpm install") and "*" in rule]
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_agents_md_says_pre_commit_needs_approval(tmp_path, stack):
+    text = (render(tmp_path, stack=stack) / "AGENTS.md").read_text()
+    assert "`pre-commit run --all-files`" in text
+    assert "asks for approval" in text
 
 
 def test_agents_md_sections(tmp_path):
@@ -829,7 +855,7 @@ def test_stack_tooling_is_rendered(tmp_path, stack):
     assert "no language stack" not in agents and "no test command" not in agents
     settings = json.loads((dst / ".claude/settings.json").read_text())
     stack_rules = [r for r in settings["permissions"]["allow"] if not r.startswith("Bash(git")]
-    assert len(stack_rules) > 1  # the stack's commands, beside pre-commit
+    assert stack_rules  # the stack's own commands
     config = (dst / ".pre-commit-config.yaml").read_text()
     if stack in ("go", "rust"):
         assert "repo: local" in config

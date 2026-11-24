@@ -1,18 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git status)",
-      "Bash(git diff)",
-      "Bash(git diff --stat)",
-      "Bash(git diff --staged)",
-      "Bash(git log --oneline -20)",
 {% if stack == 'python' %}
       "Bash(uv sync*)",
       "Bash(uv run pytest*)",
       "Bash(uv run ruff*)",
       "Bash(uv run pyright*)",
 {% elif stack == 'node' %}
-      "Bash(pnpm install*)",
+      "Bash(pnpm install --frozen-lockfile)",
       "Bash(pnpm test*)",
       "Bash(pnpm run test*)",
       "Bash(pnpm lint*)",
@@ -39,10 +34,15 @@
 {% elif stack == 'latex' %}
       "Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex)",
 {% endif %}
-      "Bash(pre-commit run --all-files)"
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git diff --stat)",
+      "Bash(git diff --staged)",
+      "Bash(git log --oneline -20)"
     ],
     "deny": [
       "Read(./.env*)",
+      "Edit(/.git/**)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(git diff*--output*)",

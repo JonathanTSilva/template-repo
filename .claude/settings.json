@@ -9,11 +9,11 @@
       "Bash(uv sync*)",
       "Bash(uv run pytest*)",
       "Bash(uv run ruff*)",
-      "Bash(uv run pyright*)",
-      "Bash(pre-commit run --all-files)"
+      "Bash(uv run pyright*)"
     ],
     "deny": [
       "Read(./.env*)",
+      "Edit(/.git/**)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(git diff*--output*)",
