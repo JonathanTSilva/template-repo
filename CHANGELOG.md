@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/JonathanTSilva/template-repo/compare/v1.5.0...v1.5.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* stop auto-allowing pre-commit and end the answers file with one newline ([#32](https://github.com/JonathanTSilva/template-repo/issues/32)) ([676f931](https://github.com/JonathanTSilva/template-repo/commit/676f931f943bda6561356506e547053f650d0e32)), closes [#31](https://github.com/JonathanTSilva/template-repo/issues/31)
+
 ## [1.5.0](https://github.com/JonathanTSilva/template-repo/compare/v1.4.0...v1.5.0) (2026-11-23)
 
 
