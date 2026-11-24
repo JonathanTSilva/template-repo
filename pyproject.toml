@@ -6,7 +6,7 @@ requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
-dev = ["copier", "pyright", "pytest", "pytest-cov", "pyyaml", "ruff", "types-pyyaml"]
+dev = ["copier", "pre-commit-hooks", "pyright", "pytest", "pytest-cov", "pyyaml", "ruff", "types-pyyaml"]
 
 [tool.ruff]
 line-length = 100
