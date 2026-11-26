@@ -1,0 +1,139 @@
+{#-
+  OpenSSF Best Practices "passing" answers (bestpractices.dev, criteria level 0, 67 criteria).
+  Rendered for public repos with status wip or active. Flat keys: <criterion>_status and
+  <criterion>_justification (text, evidence URL at the end). The mapping is built here and
+  emitted with tojson, so the output is always valid JSON. Keep the justification text free of
+  apostrophes, angle brackets and ampersands (tojson escapes them).
+  Rule: Met or N/A only when the standard (org policy, shared workflows, this template) guarantees
+  it for every repo of the stack. Everything else is "?" with a hint for the owner.
+-#}
+{% set repo_url = 'https://github.com/JonathanTSilva/' ~ repo_name %}
+{% set org = 'https://github.com/JonathanTSilva/.github/blob/main' %}
+{% set ci_url = repo_url ~ '/blob/main/.github/workflows/ci.yml' %}
+{% set known = stack in ['python', 'go', 'node', 'shell'] %}
+{% set licenses = {'mit': 'MIT', 'cc-by-4.0': 'CC-BY-4.0', 'mit+cc-by-4.0': 'MIT AND CC-BY-4.0', 'proprietary': 'Proprietary', 'agpl-3.0': 'AGPL-3.0'} %}
+{% set languages = {'python': 'Python', 'node': 'TypeScript, JavaScript', 'shell': 'Shell', 'go': 'Go', 'rust': 'Rust', 'c-cpp': 'C, C++', 'latex': 'LaTeX', 'none': ''} %}
+{% set tools = {
+  'python': {
+    'test': 'pytest suite in tests/ (uv run pytest), run by the python job in ci.yml.',
+    'invocation': 'uv run pytest, the standard Python test runner.',
+    'warnings': 'ruff (lint and format) and pyright (strict) run in ci.yml.',
+    'static': 'ruff, pyright and CodeQL (Python) run on every pull request.',
+    'assertions': 'pytest runs with assertion rewriting on and without -O.',
+    'build': 'uv build through the uv_build backend declared in pyproject.toml; uv sync for development.',
+    'build_tools': 'uv and the standard pyproject build backend.',
+    'build_floss': 'uv, Python and ruff are FLOSS.',
+  },
+  'go': {
+    'test': 'Go tests (go test -race ./...) run by the go job in ci.yml.',
+    'invocation': 'go test ./..., the standard Go test runner.',
+    'warnings': 'gofmt and go vet run in ci.yml.',
+    'static': 'go vet and CodeQL (Go) run on every pull request.',
+    'assertions': 'go test runs with the race detector and without assertion stripping.',
+    'build': 'go build ./... with the standard Go toolchain, documented in the README.',
+    'build_tools': 'The standard Go toolchain.',
+    'build_floss': 'Go is FLOSS.',
+  },
+  'node': {
+    'test': 'vitest suite (pnpm run test), run by the node job in ci.yml.',
+    'invocation': 'pnpm run test, the standard Node test script.',
+    'warnings': 'eslint and tsc --noEmit run in ci.yml.',
+    'static': 'eslint, tsc and CodeQL (JavaScript and TypeScript) run on every pull request.',
+    'assertions': 'vitest expect assertions are always on.',
+  },
+  'shell': {
+    'test': 'bats suite in test/, run by the shell job in ci.yml.',
+    'invocation': 'bats test, the standard Bats runner.',
+    'warnings': 'shellcheck and shfmt run in ci.yml.',
+    'static': 'shellcheck runs on every pull request.',
+    'assertions': 'bats assertions are always on.',
+    'build': 'Shell scripts run from source and nothing is compiled. Owner: change to Met if the repo adds a build or packaging step.',
+    'build_tools': 'Nothing is built.',
+    'build_floss': 'Nothing is built.',
+  },
+} %}
+{% set t = tools.get(stack, {}) %}
+{% set unknown = 'Not derived from the template for this stack. Owner to answer: ' %}
+{% set release_ok = has_release %}
+{% set no_release = 'release-please is off for this repo (has_release is false). Owner to answer: ' %}
+{% set rows = [
+  ['description_good', 'Met', 'README opens with a What it is section that says what the software does.', repo_url ~ '#readme'],
+  ['interact', 'Met', 'README covers how to obtain (Quick start), how to give feedback (issue forms) and how to contribute (Contributing section).', repo_url ~ '#readme'],
+  ['contribution', 'Met', 'README links the contributing guide: issue first, branch named type/issue-slug, Conventional Commits, pull request from the template, squash merge.', org ~ '/CONTRIBUTING.md'],
+  ['contribution_requirements', 'Met', 'The guide plus the pull request template checklist (tests, docs, no secrets, Conventional Commit title) and pre-commit hooks (linters, gitleaks, commit message check).', org ~ '/PULL_REQUEST_TEMPLATE.md'],
+  ['floss_license', 'Unmet' if license == 'proprietary' else 'Met', 'Proprietary license, not a FLOSS license.' if license == 'proprietary' else 'The LICENSE file holds a free license: ' ~ licenses[license] ~ '.', repo_url ~ '/blob/main/LICENSE'],
+  ['floss_license_osi', 'Met' if license in ['mit', 'mit+cc-by-4.0', 'agpl-3.0'] else '?', 'The software license is OSI approved (' ~ licenses[license] ~ ').' if license in ['mit', 'mit+cc-by-4.0', 'agpl-3.0'] else 'Owner to answer: ' ~ licenses[license] ~ ' is not an OSI approved software license.', repo_url ~ '/blob/main/LICENSE'],
+  ['license_location', 'Met', 'Top-level LICENSE file in the repository.', repo_url ~ '/blob/main/LICENSE'],
+  ['documentation_basics', 'Met' if known else '?', 'README documents how to install, start and use the software (Quick start and Usage).' if known else unknown ~ 'does the README document install, start and basic use?', repo_url ~ '#readme'],
+  ['documentation_interface', '?', 'Owner to answer: link the command-line or API reference (README Usage or docs). N/A only for a site with no API or CLI.', repo_url ~ '#readme'],
+  ['sites_https', 'Met', 'Repository, issues, releases and docs are served over HTTPS by GitHub, and the clone URL in the README is https.', repo_url],
+  ['discussion', 'Met', 'GitHub issues and pull requests are searchable, URL-addressable, open to anyone with an account and need no proprietary client.', repo_url ~ '/issues'],
+  ['english', 'Met', 'Documentation and issues are in English, as the standard requires.', repo_url ~ '#readme'],
+  ['maintained', 'Met', 'The repo status is ' ~ status ~ ' (this file is rendered only for wip and active repos): weekly Dependabot updates, and SECURITY.md commits to a first response within 7 days. When the status becomes inactive, copier update removes this file.', repo_url ~ '/commits/main'],
+  ['repo_public', 'Met', 'Public git repository on GitHub.', repo_url],
+  ['repo_track', 'Met', 'git history records what, who and when; the ruleset sends every change to main through a pull request.', repo_url ~ '/commits/main'],
+  ['repo_interim', 'Met', 'All interim commits, branches and pull requests are public, not only releases.', repo_url ~ '/pulls?q=is%3Apr'],
+  ['repo_distributed', 'Met', 'Git.', repo_url],
+  ['version_unique', 'Met' if release_ok else '?', 'release-please assigns a unique SemVer version to each release.' if release_ok else no_release ~ 'how is each release given a unique version?', repo_url ~ '/releases'],
+  ['version_semver', 'Met' if release_ok else '?', 'SemVer, derived from Conventional Commits by release-please.' if release_ok else no_release ~ 'which version scheme is used?', repo_url ~ '/releases'],
+  ['version_tags', 'Met' if release_ok else '?', 'Each release is a vX.Y.Z git tag and a GitHub Release.' if release_ok else no_release ~ 'are releases tagged in git?', repo_url ~ '/tags'],
+  ['release_notes', 'Met' if release_ok else '?', 'Each release has GitHub Release notes and a CHANGELOG.md entry generated by release-please, grouped by type (not a raw git log).' if release_ok else no_release ~ 'where are the release notes?', repo_url ~ '/blob/main/CHANGELOG.md'],
+  ['release_notes_vulns', '?', 'Owner to answer: Met if a release fixed a publicly known (CVE) run-time vulnerability and the notes list it; N/A if none did so far or the project has no releases.', repo_url ~ '/releases'],
+  ['report_process', 'Met', 'GitHub Issues with bug, feature and question forms (org-level issue forms).', repo_url ~ '/issues/new/choose'],
+  ['report_tracker', 'Met', 'GitHub Issues.', repo_url ~ '/issues'],
+  ['report_responses', '?', 'Owner to answer: confirm that bug reports from the last 12 months were acknowledged. Not asserted by the template because it depends on history.', repo_url ~ '/issues?q=is%3Aissue'],
+  ['enhancement_responses', '?', 'Owner to answer: confirm that enhancement requests were responded to. Not asserted by the template because it depends on history.', repo_url ~ '/issues?q=is%3Aissue'],
+  ['report_archive', 'Met', 'GitHub issues and pull requests are public and searchable.', repo_url ~ '/issues?q=is%3Aissue'],
+  ['vulnerability_report_process', 'Met', 'The org SECURITY.md (applies to every repo, shown in the Security tab) describes private reporting.', org ~ '/SECURITY.md'],
+  ['vulnerability_report_private', 'Met', 'GitHub private vulnerability reporting is turned on for public repos by the standard; reports go over HTTPS to a private advisory.', repo_url ~ '/security/advisories/new'],
+  ['vulnerability_report_response', 'Met', 'The policy promises a first response within 7 days, inside the 14 day limit.', org ~ '/SECURITY.md'],
+  ['build', ('Met' if (stack == 'go' or (stack == 'python' and skeleton)) else ('N/A' if stack == 'shell' else '?')), (t.build if (stack == 'go' or (stack == 'python' and skeleton)) else (t.build if stack == 'shell' else unknown ~ 'how is the software built, or is no build step needed (N/A)?')), repo_url ~ '#readme'],
+  ['build_common_tools', ('Met' if (stack == 'go' or (stack == 'python' and skeleton)) else ('N/A' if stack == 'shell' else '?')), (t.build_tools if (stack == 'go' or (stack == 'python' and skeleton) or stack == 'shell') else unknown ~ 'are the build tools common for the ecosystem?'), repo_url ~ '#readme'],
+  ['build_floss_tools', ('Met' if (stack == 'go' or (stack == 'python' and skeleton)) else ('N/A' if stack == 'shell' else '?')), (t.build_floss if (stack == 'go' or (stack == 'python' and skeleton) or stack == 'shell') else unknown ~ 'are all build tools FLOSS?'), repo_url ~ '#readme'],
+  ['test', 'Met' if known else '?', t.test if known else unknown ~ 'which FLOSS test suite runs in CI?', ci_url],
+  ['test_invocation', 'Met' if known else '?', t.invocation if known else unknown ~ 'is the test runner the standard one for the language?', ci_url],
+  ['test_most', '?', 'Owner to answer: state the coverage and the gate (for example, Codecov target or CI floor). Not asserted by the template because the percentage is repo specific.', 'https://app.codecov.io/gh/JonathanTSilva/' ~ repo_name],
+  ['test_continuous_integration', 'Met', 'ci.yml runs on every pull request and push to main, and the aggregate check ci is required by the ruleset.', repo_url ~ '/actions/workflows/ci.yml'],
+  ['test_policy', 'Met', 'Policy in the pull request template: Tests added or updated, and passing; the handbook and CONTRIBUTING require it.', org ~ '/PULL_REQUEST_TEMPLATE.md'],
+  ['tests_are_added', '?', 'Owner to answer: point to recent pull requests that shipped with tests. Not asserted by the template because it depends on history.', repo_url ~ '/pulls?q=is%3Apr+is%3Amerged'],
+  ['tests_documented_added', 'Met', 'Pull request template checklist item plus the CONTRIBUTING workflow.', org ~ '/PULL_REQUEST_TEMPLATE.md'],
+  ['warnings', 'Met' if known else '?', t.warnings if known else unknown ~ 'which linters run in CI?', ci_url],
+  ['warnings_fixed', 'Met' if known else '?', 'CI fails on any lint, type or format finding and ci is a required check, so warnings are fixed before merge.' if known else unknown ~ 'does CI fail on any warning?', repo_url ~ '/actions/workflows/ci.yml'],
+  ['warnings_strict', '?', 'Owner to answer: Met if the linters run with strict settings. SUGGESTED only, not required for the badge.', ci_url],
+  ['know_secure_design', '?', 'OWNER ATTESTATION: only the maintainer can declare this. Met if you know secure design principles such as least privilege and fail-safe defaults; see the security handbook.', org ~ '/handbook/security.md'],
+  ['know_common_errors', '?', 'OWNER ATTESTATION: only the maintainer can declare this. Met if you know the common vulnerability kinds (injection, path traversal, unsafe deserialization, leaked secrets) and how to counter them; see the security handbook.', org ~ '/handbook/security.md'],
+  ['crypto_published', 'N/A' if known else '?', 'The software implements and configures no cryptography. Owner: change this if that stops being true.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_call', 'N/A' if known else '?', 'No cryptographic functionality.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_floss', 'N/A' if known else '?', 'No cryptographic functionality.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_keylength', 'N/A' if known else '?', 'No cryptographic keys or security mechanisms.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_working', 'N/A' if known else '?', 'No cryptographic functionality.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_weaknesses', 'N/A' if known else '?', 'No cryptographic functionality.' if known else unknown ~ 'does the software use cryptography?', repo_url],
+  ['crypto_pfs', 'N/A' if known else '?', 'No key agreement protocols.' if known else unknown ~ 'does the software use key agreement?', repo_url],
+  ['crypto_password_storage', 'N/A' if known else '?', 'The software stores no passwords for authenticating external users.' if known else unknown ~ 'does the software store passwords for external users?', repo_url],
+  ['crypto_random', 'N/A' if known else '?', 'No cryptographic keys or nonces are generated.' if known else unknown ~ 'does the software generate keys or nonces?', repo_url],
+  ['delivery_mitm', 'Met', 'Source is delivered by git over HTTPS (or SSH) from GitHub and releases through HTTPS GitHub Releases; there is no plain http download.', repo_url ~ '/releases'],
+  ['delivery_unsigned', 'Met', 'No hash is fetched over http; the project does not distribute checksums over http.', repo_url ~ '#readme'],
+  ['vulnerabilities_fixed_60_days', '?', 'Owner to answer: check the Security tab for open Dependabot, secret scanning and advisory items older than 60 days. Not asserted by the template because it is a point in time fact.', repo_url ~ '/security'],
+  ['vulnerabilities_critical_fixed', 'Met', 'Dependabot security updates are on and the SECURITY.md response target is 7 days.', repo_url ~ '/security'],
+  ['no_leaked_credentials', 'Met', 'gitleaks runs in pre-commit and in CI, and GitHub secret scanning with push protection is on for public repos.', ci_url],
+  ['static_analysis', 'Met' if known else '?', t.static if known else unknown ~ 'which FLOSS static analysis tool runs on the code?', repo_url ~ '/security/code-scanning'],
+  ['static_analysis_common_vulnerabilities', 'Met' if stack in ['python', 'go', 'node'] else '?', 'CodeQL security queries run on public repos where the language is supported, plus OpenSSF Scorecard.' if stack in ['python', 'go', 'node'] else unknown ~ 'does a tool look for common vulnerabilities?', repo_url ~ '/security/code-scanning'],
+  ['static_analysis_fixed', '?', 'Owner to answer: confirm no exploitable finding is open in code scanning; dismiss false positives with a reason. Not asserted by the template because it is a point in time fact.', repo_url ~ '/security/code-scanning'],
+  ['static_analysis_often', 'Met' if known else '?', 'The static analysis tools run on every pull request and push to main through ci.yml, and CodeQL also runs weekly.' if known else unknown ~ 'how often does static analysis run?', repo_url ~ '/actions'],
+  ['dynamic_analysis', '?', 'Owner to answer: Met if a fuzzer, property test or coverage gate over 80 percent branches runs against the software. Not asserted by the template.', repo_url],
+  ['dynamic_analysis_unsafe', 'N/A' if known else '?', 'Python, Go, TypeScript and Bash are memory-safe languages and no C or C++ is shipped.' if known else unknown ~ 'is the software written in a memory-unsafe language?', repo_url],
+  ['dynamic_analysis_enable_assertions', 'Met' if known else '?', t.assertions if known else unknown ~ 'are assertions enabled when tests and fuzzers run?', ci_url],
+  ['dynamic_analysis_fixed', '?', 'Owner to answer: Met if every exploitable bug found by dynamic analysis was fixed (or none was found). Not asserted by the template.', repo_url ~ '/pulls?q=is%3Apr'],
+] %}
+{% set data = {
+  'name': repo_name,
+  'description': description,
+  'repo_url': repo_url,
+  'homepage_url': repo_url,
+  'license': licenses[license],
+  'implementation_languages': languages[stack],
+} %}
+{% for key, status, justification, url in rows %}
+{% set _ = data.update({key ~ '_status': status, key ~ '_justification': justification ~ ' ' ~ url}) %}
+{% endfor %}
+{{ data | tojson(indent=2) }}

@@ -24,6 +24,9 @@
 [![Quality](https://sonarcloud.io/api/project_badges/measure?project=JonathanTSilva_{{ repo_name }}&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JonathanTSilva_{{ repo_name }})
 {% endif %}
 [![Scorecard](https://img.shields.io/ossf-scorecard/github.com/{{ repo }}?style=flat-square&label=scorecard)](https://scorecard.dev/viewer/?uri=github.com/{{ repo }})
+{% if bestpractices_id > 0 %}
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/{{ bestpractices_id }}/badge)](https://www.bestpractices.dev/projects/{{ bestpractices_id }})
+{% endif %}
 {% endif %}
 [![License](https://img.shields.io/badge/license-{{ license_labels[license] }}-blue?style=flat-square)](LICENSE)
 {% if visibility == 'public' %}
