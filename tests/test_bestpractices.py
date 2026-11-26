@@ -109,6 +109,11 @@ def test_other_stacks_leave_stack_rows_unknown(tmp_path, stack):
         assert data[f"{key}_status"] == "?", key
 
 
+def test_maintained_is_met_because_only_live_repos_get_the_file(tmp_path):
+    data = load(render(tmp_path))
+    assert data["maintained_status"] == "Met"
+
+
 def test_build_rows_per_stack(tmp_path):
     expected = {"python": "Met", "go": "Met", "shell": "N/A", "node": "?"}
     for stack, status in expected.items():
@@ -122,7 +127,6 @@ def test_unprovable_rows_are_unknown_everywhere(tmp_path):
     data = load(render(tmp_path))
     for key in (
         "documentation_interface",
-        "maintained",
         "test_most",
         "tests_are_added",
         "report_responses",

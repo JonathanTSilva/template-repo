@@ -69,7 +69,7 @@
   ['sites_https', 'Met', 'Repository, issues, releases and docs are served over HTTPS by GitHub, and the clone URL in the README is https.', repo_url],
   ['discussion', 'Met', 'GitHub issues and pull requests are searchable, URL-addressable, open to anyone with an account and need no proprietary client.', repo_url ~ '/issues'],
   ['english', 'Met', 'Documentation and issues are in English, as the standard requires.', repo_url ~ '#readme'],
-  ['maintained', '?', 'Owner to answer: show recent commits, weekly Dependabot and a response target in SECURITY.md. Not asserted by the template because it depends on activity.', repo_url ~ '/commits/main'],
+  ['maintained', 'Met', 'The repo status is ' ~ status ~ ' (this file is rendered only for wip and active repos): weekly Dependabot updates, and SECURITY.md commits to a first response within 7 days. When the status becomes inactive, copier update removes this file.', repo_url ~ '/commits/main'],
   ['repo_public', 'Met', 'Public git repository on GitHub.', repo_url],
   ['repo_track', 'Met', 'git history records what, who and when; the ruleset sends every change to main through a pull request.', repo_url ~ '/commits/main'],
   ['repo_interim', 'Met', 'All interim commits, branches and pull requests are public, not only releases.', repo_url ~ '/pulls?q=is%3Apr'],
