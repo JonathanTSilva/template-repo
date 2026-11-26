@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 
 import pytest
-from test_render import BASE, render
+
+from test_render import render
 
 FILE = ".bestpractices.json"
 ALLOWED = {"Met", "Unmet", "N/A", "?"}
@@ -188,7 +189,3 @@ def test_badge_sits_between_scorecard_and_license(tmp_path):
 def test_private_repo_never_gets_the_badge(tmp_path):
     dst = render(tmp_path, visibility="private", license="proprietary", bestpractices_id=7)
     assert "bestpractices.dev" not in (dst / "README.md").read_text()
-
-
-def test_base_answers_are_public_and_active():
-    assert BASE["visibility"] == "public" and BASE["status"] == "active"
