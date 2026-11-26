@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/JonathanTSilva/template-repo/compare/v1.5.1...v1.6.0) (2026-11-26)
+
+
+### Features
+
+* render .bestpractices.json and the bestpractices_id badge ([#37](https://github.com/JonathanTSilva/template-repo/issues/37)) ([6d8c56f](https://github.com/JonathanTSilva/template-repo/commit/6d8c56f50bc145de70be686aab395cac3ab0adab))
+
 ## [1.5.1](https://github.com/JonathanTSilva/template-repo/compare/v1.5.0...v1.5.1) (2026-11-24)
 
 
