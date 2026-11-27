@@ -126,6 +126,11 @@ def test_claude_md_imports_agents(tmp_path):
     assert (tmp_path / "CLAUDE.md").read_text() == "@AGENTS.md\n"
 
 
+def test_agents_md_documents_agy_add_dir(tmp_path):
+    render(tmp_path)
+    assert "--add-dir <brief folder>" in (tmp_path / "AGENTS.md").read_text()
+
+
 @pytest.mark.parametrize(
     "agent,model", (("architect", "opus"), ("builder", "sonnet"), ("mechanic", "haiku"))
 )
