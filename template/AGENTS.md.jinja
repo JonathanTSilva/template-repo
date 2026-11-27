@@ -155,6 +155,6 @@ Rules:
 
 1. Opus thinks. Design, plans, reviews, and anything that cannot be undone.
 2. Sonnet builds. Give it the task text, the files it may touch and the done-check.
-3. Flash applies first. Run `agy --model gemini-3.8-flash-medium --mode accept-edits -p "<prompt>"` with `-p` last, or it takes the next flag as the prompt. The prompt names the files it may edit, gives the exact checklist and forbids shell commands: headless `agy` is edit-only and cannot read outside its allowed folders. The caller then checks the diff and runs the verify command.
+3. Flash applies first. Run `agy --model gemini-3.8-flash-medium --mode accept-edits -p "<prompt>"` with `-p` last, or it takes the next flag as the prompt. The prompt names the files it may edit, gives the exact checklist and forbids shell commands: headless `agy` is edit-only and cannot read outside its allowed folders. If the brief lives outside the repo, add `--add-dir <brief folder>` before `-p`, or `agy` cannot read it. The caller then checks the diff and runs the verify command.
 4. Haiku is the backup. If Flash fails, restore only the files it touched and give the same checklist and verify command to `mechanic`. If that fails too, it escalates to Sonnet and does not improvise.
 5. Jonathan decides. Approvals and irreversible GitHub actions (rename, archive, visibility change, delete) wait for him.

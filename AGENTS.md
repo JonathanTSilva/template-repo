@@ -60,4 +60,4 @@ Three subagents in `.claude/agents/` carry fixed models, and Gemini Flash runs t
 | `agy` (headless) | Gemini 3.8 Flash | Mechanical work, first choice: an exact edit checklist with a command that proves it is done |
 | `mechanic` | Haiku | Mechanical work when Flash fails, or when the work needs shell commands |
 
-Run Flash as `agy --model gemini-3.8-flash-medium --mode accept-edits -p "<prompt>"`, with `-p` last. Headless `agy` is edit-only and cannot read outside its allowed folders, so the caller runs the verify command.
+Run Flash as `agy --model gemini-3.8-flash-medium --mode accept-edits -p "<prompt>"`, with `-p` last. Headless `agy` is edit-only and cannot read outside its allowed folders, so the caller runs the verify command. For a brief outside the repo, add `--add-dir <brief folder>` before `-p`.
